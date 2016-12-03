@@ -8,6 +8,8 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -59,7 +61,9 @@ func handler(responseWriter http.ResponseWriter, request *http.Request) {
 		panic(err)
 	}
 
-	fileName := fmt.Sprintf("./track-entries/%s-%d.html", recordId, trackEntry.CreatedAt)
+	trackEntriesPath := filepath.Join("/tmp", "track_entries", recordId)
+	os.MkdirAll(trackEntriesPath, os.ModePerm)
+	fileName := filepath.Join(trackEntriesPath, fmt.Sprintf("%d.html", trackEntry.CreatedAt))
 	err = ioutil.WriteFile(fileName, htmlBytes, 0644)
 	if err != nil {
 		fmt.Fprintf(responseWriter, "quack! error writing HTML")
