@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/ducktrack/wing/utils"
+	"github.com/satori/go.uuid"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -38,13 +38,7 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 
 	recordCookie, noCookieErr := request.Cookie("record_id")
 	if noCookieErr != nil || recordCookie.Value == "" {
-		uuid, err := utils.NewUUID()
-
-		if err != nil {
-			response.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprintf(response, `{"message": "Fail create record ID"}`)
-			return
-		}
+		uuid := uuid.NewV4().String()
 
 		expiration := time.Now().Add(2 * time.Hour)
 		recordCookie = &http.Cookie{
