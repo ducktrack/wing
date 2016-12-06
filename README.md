@@ -10,7 +10,7 @@
 
 ## Development
 
-__Wing__ uses `glide` for dependency management, this setup the project do the following:
+__Wing__ uses `glide` for dependency management, to setup the project do the following:
 
 ```sh
 brew install glide

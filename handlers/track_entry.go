@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/satori/go.uuid"
 	"io/ioutil"
@@ -51,20 +52,10 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 		return
 	}
 
-	htmlBytes, err := base64.StdEncoding.DecodeString(trackEntry.Markup)
+	err = createRecordFile(&trackEntry, recordId)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
-		fmt.Fprintf(response, `{"message": "Invalid base64 payload"}`)
-		return
-	}
-
-	trackEntriesPath := filepath.Join("/tmp", "track_entries", recordId)
-	os.MkdirAll(trackEntriesPath, os.ModePerm)
-	fileName := filepath.Join(trackEntriesPath, fmt.Sprintf("%d.html", trackEntry.CreatedAt))
-	err = ioutil.WriteFile(fileName, htmlBytes, 0644)
-	if err != nil {
-		response.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(response, `{"message": "Fail to save request"}`)
+		fmt.Fprintf(response, err.Error())
 		return
 	}
 
@@ -88,4 +79,22 @@ func createRecordCookie(response http.ResponseWriter, request *http.Request) *ht
 	}
 
 	return cookie
+}
+
+func createRecordFile(trackEntry *TrackEntry, recordId string) error {
+	htmlBytes, err := base64.StdEncoding.DecodeString(trackEntry.Markup)
+	if err != nil {
+		return errors.New(`{"message": "Invalid base64 payload"}`)
+	}
+
+	recordPath := filepath.Join("/tmp", "track_entries", recordId)
+	os.MkdirAll(recordPath, os.ModePerm)
+
+	fileName := filepath.Join(recordPath, fmt.Sprintf("%d.html", trackEntry.CreatedAt))
+	err = ioutil.WriteFile(fileName, htmlBytes, 0644)
+	if err != nil {
+		return errors.New(`{"message": "Fail to save request"}`)
+	}
+
+	return nil
 }
