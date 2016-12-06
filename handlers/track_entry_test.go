@@ -122,4 +122,11 @@ func TestWhenItSavesTheRequest(t *testing.T) {
 			"",
 		)
 	}
+
+	request := http.Request{Header: http.Header{"Cookie": rr.HeaderMap["Set-Cookie"]}}
+	_, err := request.Cookie(RECORD_ID_COOKIE_NAME)
+
+	if err != nil {
+		t.Errorf("expected handler to create '%s' cookie", RECORD_ID_COOKIE_NAME)
+	}
 }

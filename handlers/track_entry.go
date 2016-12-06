@@ -12,6 +12,9 @@ import (
 	"time"
 )
 
+const RECORD_ID_COOKIE_NAME = "record_id"
+const RECORD_ID_EXPIRATION = 2 * time.Hour
+
 type TrackEntryHandler struct {
 }
 
@@ -36,21 +39,7 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 		return
 	}
 
-	recordCookie, noCookieErr := request.Cookie("record_id")
-	if noCookieErr != nil || recordCookie.Value == "" {
-		uuid := uuid.NewV4().String()
-
-		expiration := time.Now().Add(2 * time.Hour)
-		recordCookie = &http.Cookie{
-			Name:     "record_id",
-			Value:    string(uuid),
-			Expires:  expiration,
-			Path:     "/",
-			HttpOnly: true,
-		}
-		http.SetCookie(response, recordCookie)
-	}
-
+	recordCookie := createRecordCookie(response, request)
 	recordId := recordCookie.Value
 
 	decoder := json.NewDecoder(request.Body)
@@ -81,4 +70,22 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 
 	response.WriteHeader(http.StatusCreated)
 	fmt.Printf("Tracking dom, record_id: %s, created_at: %d\n", recordId, trackEntry.CreatedAt)
+}
+
+func createRecordCookie(response http.ResponseWriter, request *http.Request) *http.Cookie {
+	cookie, err := request.Cookie(RECORD_ID_COOKIE_NAME)
+
+	if err != nil || cookie.Value == "" {
+		cookie = &http.Cookie{
+			Name:     RECORD_ID_COOKIE_NAME,
+			Value:    uuid.NewV4().String(),
+			Expires:  time.Now().Add(RECORD_ID_EXPIRATION),
+			Path:     "/",
+			HttpOnly: true,
+		}
+
+		http.SetCookie(response, cookie)
+	}
+
+	return cookie
 }
