@@ -1,16 +1,12 @@
 package handlers
 
 import (
-	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/ducktrack/wing/config"
+	"github.com/ducktrack/wing/exporters"
 	"github.com/satori/go.uuid"
-	"io/ioutil"
 	"net/http"
-	"os"
-	"path/filepath"
 	"time"
 )
 
@@ -19,11 +15,6 @@ const RECORD_ID_EXPIRATION = 2 * time.Hour
 
 type TrackEntryHandler struct {
 	Config *config.Config
-}
-
-type TrackEntry struct {
-	CreatedAt int    `json:"created_at"`
-	Markup    string `json:"markup"`
 }
 
 func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *http.Request) {
@@ -42,11 +33,17 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 		return
 	}
 
+	if h.Config == nil {
+		response.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(response, `{"message": "App not configured"}`)
+		return
+	}
+
 	recordCookie := createRecordCookie(response, request)
 	recordId := recordCookie.Value
 
 	decoder := json.NewDecoder(request.Body)
-	var trackEntry TrackEntry
+	var trackEntry exporters.TrackEntry
 	err := decoder.Decode(&trackEntry)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
@@ -54,10 +51,17 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 		return
 	}
 
-	err = createRecordFile(&trackEntry, recordId)
+	exporter, err := exporters.Lookup(h.Config)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
-		fmt.Fprintf(response, err.Error())
+		fmt.Fprintf(response, fmt.Sprintf(`{"message": "%s"}`, err.Error()))
+		return
+	}
+
+	err = exporter.Export(&trackEntry, recordId)
+	if err != nil {
+		response.WriteHeader(http.StatusUnprocessableEntity)
+		fmt.Fprintf(response, fmt.Sprintf(`{"message": "%s"}`, err.Error()))
 		return
 	}
 
@@ -81,22 +85,4 @@ func createRecordCookie(response http.ResponseWriter, request *http.Request) *ht
 	}
 
 	return cookie
-}
-
-func createRecordFile(trackEntry *TrackEntry, recordId string) error {
-	htmlBytes, err := base64.StdEncoding.DecodeString(trackEntry.Markup)
-	if err != nil {
-		return errors.New(`{"message": "Invalid base64 payload"}`)
-	}
-
-	recordPath := filepath.Join("/tmp", "track_entries", recordId)
-	os.MkdirAll(recordPath, os.ModePerm)
-
-	fileName := filepath.Join(recordPath, fmt.Sprintf("%d.html", trackEntry.CreatedAt))
-	err = ioutil.WriteFile(fileName, htmlBytes, 0644)
-	if err != nil {
-		return errors.New(`{"message": "Fail to save request"}`)
-	}
-
-	return nil
 }

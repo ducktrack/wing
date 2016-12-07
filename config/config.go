@@ -14,6 +14,7 @@ type Config struct {
 }
 
 type FileExporter struct {
+	Folder string
 }
 
 func ReadConfigFile(path string) (*Config, error) {
