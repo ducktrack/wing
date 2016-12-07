@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ducktrack/wing/config"
 	"github.com/satori/go.uuid"
 	"io/ioutil"
 	"net/http"
@@ -17,6 +18,7 @@ const RECORD_ID_COOKIE_NAME = "record_id"
 const RECORD_ID_EXPIRATION = 2 * time.Hour
 
 type TrackEntryHandler struct {
+	Config *config.Config
 }
 
 type TrackEntry struct {

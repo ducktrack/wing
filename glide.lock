@@ -1,6 +1,8 @@
-hash: b2b2d027f394afc11436a325546c76466a84acf08e7f16edb6ca367a68a0e259
-updated: 2016-12-06T22:17:21.736962046+01:00
+hash: 1ed342e2ecd86d5d5b40ad10faefbef35d959b989e6197d0ffcdd6ccee782e4d
+updated: 2016-12-07T16:45:21.732925417+01:00
 imports:
 - name: github.com/satori/go.uuid
   version: 879c5887cd475cd7864858769793b2ceb0d44feb
+- name: gopkg.in/yaml.v2
+  version: a5b47d31c556af34a302ce5d659e6fea44d90de0
 testImports: []
