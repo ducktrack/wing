@@ -6,7 +6,7 @@
 
 ## Running tests
 
-`go test $(go list ./... | grep -v /vendor/)`
+`make test`
 
 ## Development
 
