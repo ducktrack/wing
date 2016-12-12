@@ -9,3 +9,6 @@ compile:
 
 test:
 	go test ${TEST_DIRS}
+
+ginkgo:
+	ginkgo -r -cover
