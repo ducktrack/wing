@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"fmt"
 	"github.com/ducktrack/wing/config"
+	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -29,17 +31,8 @@ func TestWhenRequestMethodOptions(t *testing.T) {
 	req, _ := http.NewRequest("OPTIONS", "/", nil)
 	handler.ServeHTTP(rr, req)
 
-	if status := rr.Code; status != 200 {
-		t.Errorf("handler returned wrong status code:\ngot:\n%v\n\nwant:\n%v\n", status, 200)
-	}
-
-	if rr.Body.String() != "" {
-		t.Errorf(
-			"handler returned unexpected body:\ngot:\n%v\n\nwant:\n%v\n",
-			rr.Body.String(),
-			"",
-		)
-	}
+	assert.Equal(t, 200, rr.Code, "should respond with 200 to OPTIONS request")
+	assert.Equal(t, "", rr.Body.String(), "should respond with an empty body")
 }
 
 func TestWhenRequestMethodDifferentThanPost(t *testing.T) {
@@ -49,18 +42,8 @@ func TestWhenRequestMethodDifferentThanPost(t *testing.T) {
 		req, _ := http.NewRequest(method, "/", nil)
 		handler.ServeHTTP(rr, req)
 
-		if status := rr.Code; status != 405 {
-			t.Errorf("handler returned wrong status code:\ngot:\n%v\n\nwant:\n%v\n", status, 405)
-		}
-
-		expected := `{"message": "Method Not Allowed"}`
-		if rr.Body.String() != expected {
-			t.Errorf(
-				"handler returned unexpected body:\ngot:\n%v\n\nwant:\n%v\n",
-				rr.Body.String(),
-				expected,
-			)
-		}
+		assert.Equal(t, 405, rr.Code, "should respond with 405 to unhandled method")
+		assert.Equal(t, `{"message": "Method Not Allowed"}`, rr.Body.String(), "should respond with an error message")
 	}
 }
 
@@ -72,18 +55,8 @@ func TestWhenJsonPayloadIsInvalid(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	handler.ServeHTTP(rr, req)
 
-	if status := rr.Code; status != 422 {
-		t.Errorf("handler returned wrong status code:\ngot:\n%v\n\nwant:\n%v\n", status, 422)
-	}
-
-	expected := `{"message": "Invalid JSON payload"}`
-	if rr.Body.String() != expected {
-		t.Errorf(
-			"handler returned unexpected body:\ngot:\n%v\n\nwant:\n%v\n",
-			rr.Body.String(),
-			expected,
-		)
-	}
+	assert.Equal(t, 422, rr.Code, "should respond with 422 to invalid payload")
+	assert.Equal(t, `{"message": "Invalid JSON payload"}`, rr.Body.String(), "should respond with an error message")
 }
 
 func TestWhenBase64IsInvalid(t *testing.T) {
@@ -99,18 +72,8 @@ func TestWhenBase64IsInvalid(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	handler.ServeHTTP(rr, req)
 
-	if status := rr.Code; status != 422 {
-		t.Errorf("handler returned wrong status code:\ngot:\n%v\n\nwant:\n%v\n", status, 422)
-	}
-
-	expected := `{"message": "Invalid base64 payload"}`
-	if rr.Body.String() != expected {
-		t.Errorf(
-			"handler returned unexpected body:\ngot:\n%v\n\nwant:\n%v\n",
-			rr.Body.String(),
-			expected,
-		)
-	}
+	assert.Equal(t, 422, rr.Code, "should respond with 422 to invalid base64 payload")
+	assert.Equal(t, `{"message": "Invalid base64 payload"}`, rr.Body.String(), "should respond with an error message")
 }
 
 func TestWhenItSavesTheRequest(t *testing.T) {
@@ -126,22 +89,11 @@ func TestWhenItSavesTheRequest(t *testing.T) {
 	req.Header.Set("Content-Type", "application/json")
 	handler.ServeHTTP(rr, req)
 
-	if status := rr.Code; status != 201 {
-		t.Errorf("handler returned wrong status code:\ngot:\n%v\n\nwant:\n%v\n", status, 201)
-	}
-
-	if rr.Body.String() != "" {
-		t.Errorf(
-			"handler returned unexpected body:\ngot:\n%v\n\nwant:\n%v\n",
-			rr.Body.String(),
-			"",
-		)
-	}
+	assert.Equal(t, 201, rr.Code, "should respond with 201 to to valid request")
+	assert.Equal(t, "", rr.Body.String(), "should respond with an empty body")
 
 	request := http.Request{Header: http.Header{"Cookie": rr.HeaderMap["Set-Cookie"]}}
 	_, err := request.Cookie(RECORD_ID_COOKIE_NAME)
 
-	if err != nil {
-		t.Errorf("expected handler to create '%s' cookie", RECORD_ID_COOKIE_NAME)
-	}
+	assert.Nil(t, err, fmt.Sprintf("expected handler to create '%s' cookie", RECORD_ID_COOKIE_NAME))
 }
