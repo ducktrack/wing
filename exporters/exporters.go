@@ -21,6 +21,6 @@ func Lookup(config *config.Config) (Exporter, error) {
 		return &FileExporter{Config: config.FileExporter}, nil
 	}
 
-	errorMessage := fmt.Sprintf("No exporter found for \"%s\"", config.Exporter)
+	errorMessage := fmt.Sprintf("No exporter found for '%s'", config.Exporter)
 	return nil, errors.New(errorMessage)
 }
