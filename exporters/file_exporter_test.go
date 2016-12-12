@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/ducktrack/wing/config"
 	"github.com/satori/go.uuid"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -23,26 +24,15 @@ func TestExport(t *testing.T) {
 
 	exporter := FileExporter{Config: exporterConfig}
 	err := exporter.Export(trackEntry, recordId)
-
-	if err != nil {
-		t.Errorf("FileExporter#Export failed with:\n%v\n", err.Error())
-	}
+	assert.Nil(t, err, "export should succeed")
 
 	recordPath := fmt.Sprintf("/tmp/test/track_entries/%s/%d.html", recordId, trackEntry.CreatedAt)
 	if _, err := os.Stat(recordPath); os.IsNotExist(err) {
-		t.Errorf("FileExporter#Export failed to save track entry, expected:\n%v\n to exist", recordPath)
-		return
+		fmt.Sprintf("FileExporter#Export failed to save track entry, expected:\n%v\n to exist", recordPath)
+		t.FailNow()
 	}
+	defer os.Remove(recordPath)
 
 	htmlBytes, _ := ioutil.ReadFile(recordPath)
-	expected := "<html></html>"
-	if string(htmlBytes) != expected {
-		t.Errorf(
-			"FileExporter#Export saved the wrong content:\ngot:\n%v\nwant:\n%v\n",
-			string(htmlBytes),
-			expected,
-		)
-	}
-
-	_ = os.Remove(recordPath)
+	assert.Equal(t, "<html></html>", string(htmlBytes), "FileExporter#Export should save the expected content")
 }
