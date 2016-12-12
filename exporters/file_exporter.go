@@ -26,7 +26,7 @@ func (fe *FileExporter) Export(trackEntry *TrackEntry, recordId string) error {
 	fileName := filepath.Join(recordPath, fmt.Sprintf("%d.html", trackEntry.CreatedAt))
 	err = ioutil.WriteFile(fileName, htmlBytes, 0644)
 	if err != nil {
-		return errors.New("Fail to save track entry")
+		return errors.New(fmt.Sprintf("Failed to save track entry to '%s'", fileName))
 	}
 
 	return nil
