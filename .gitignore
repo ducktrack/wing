@@ -3,3 +3,4 @@ track-entries/
 !track-entries/.keep
 wing
 vendor/
+*coverprofile
