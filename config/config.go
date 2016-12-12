@@ -19,7 +19,7 @@ type FileExporter struct {
 
 func ReadConfigFile(path string) (*Config, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		errorMessage := fmt.Sprintf("The configuration file is missing, expected file \"%s\"", path)
+		errorMessage := fmt.Sprintf("The configuration file is missing, expected file '%s'", path)
 		return nil, errors.New(errorMessage)
 	}
 
