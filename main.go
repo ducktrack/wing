@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/ducktrack/wing/config"
 	"github.com/ducktrack/wing/handlers"
 	"net/http"
@@ -13,16 +14,16 @@ const DEFAULT_CONFIG_FILE = "application.yml"
 func main() {
 	port := getPort()
 	configFilePath := getConfigFilePath()
+	log.Infof("Config file: %s", configFilePath)
 
 	config, err := config.ReadConfigFile(configFilePath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
+		log.WithError(err).Fatal("Failed to read config file")
 		os.Exit(1)
 	}
 
-	fmt.Printf("Config file: %s\n", configFilePath)
-	fmt.Printf("Using exporter: %s\n", config.Exporter)
-	fmt.Printf("Starting Wing at port %s\n", port)
+	log.Infof("Using exporter: %s", config.Exporter)
+	log.Infof("Starting Wing at port %s", port)
 
 	http.Handle("/", &handlers.TrackEntryHandler{Config: config})
 

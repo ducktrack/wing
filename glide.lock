@@ -1,8 +1,10 @@
-hash: 1ed342e2ecd86d5d5b40ad10faefbef35d959b989e6197d0ffcdd6ccee782e4d
-updated: 2016-12-07T16:45:21.732925417+01:00
+hash: 74c50d7a4c556cfa27362ea9652176305d7cc14dee2858c8a1981af97c925589
+updated: 2016-12-12T19:19:15.822505557+01:00
 imports:
 - name: github.com/satori/go.uuid
   version: 879c5887cd475cd7864858769793b2ceb0d44feb
+- name: github.com/Sirupsen/logrus
+  version: d26492970760ca5d33129d2d799e34be5c4782eb
 - name: gopkg.in/yaml.v2
   version: a5b47d31c556af34a302ce5d659e6fea44d90de0
 testImports: []

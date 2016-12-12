@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/ducktrack/wing/config"
 	"github.com/ducktrack/wing/exporters"
 	"github.com/satori/go.uuid"
@@ -66,7 +67,7 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 	}
 
 	response.WriteHeader(http.StatusCreated)
-	fmt.Printf("Tracking dom, record_id: %s, created_at: %d\n", recordId, trackEntry.CreatedAt)
+	log.Infof("Tracking dom, record_id: %s, created_at: %d", recordId, trackEntry.CreatedAt)
 }
 
 func createRecordCookie(response http.ResponseWriter, request *http.Request) *http.Cookie {
