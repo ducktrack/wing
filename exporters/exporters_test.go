@@ -1,7 +1,7 @@
 package exporters
 
 import (
-	"github.com/ducktrack/wing/config"
+	"github.com/duckclick/wing/config"
 	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"

@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
-	"github.com/ducktrack/wing/config"
-	"github.com/ducktrack/wing/handlers"
+	"github.com/duckclick/wing/config"
+	"github.com/duckclick/wing/handlers"
 	"net/http"
 	"os"
 )

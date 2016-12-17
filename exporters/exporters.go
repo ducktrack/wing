@@ -3,7 +3,7 @@ package exporters
 import (
 	"errors"
 	"fmt"
-	"github.com/ducktrack/wing/config"
+	"github.com/duckclick/wing/config"
 )
 
 type TrackEntry struct {

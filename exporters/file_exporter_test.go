@@ -2,7 +2,7 @@ package exporters
 
 import (
 	"fmt"
-	"github.com/ducktrack/wing/config"
+	"github.com/duckclick/wing/config"
 	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"

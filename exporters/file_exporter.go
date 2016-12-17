@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/ducktrack/wing/config"
+	"github.com/duckclick/wing/config"
 	"io/ioutil"
 	"os"
 	"path/filepath"
