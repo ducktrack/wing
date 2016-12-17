@@ -8,6 +8,7 @@ import (
 
 type TrackEntry struct {
 	CreatedAt int    `json:"created_at"`
+	Origin    string `json:"origin"`
 	Markup    string `json:"markup"`
 }
 

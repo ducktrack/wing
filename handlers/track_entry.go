@@ -19,7 +19,8 @@ type TrackEntryHandler struct {
 }
 
 func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *http.Request) {
-	response.Header().Set("Access-Control-Allow-Origin", request.Header.Get("Origin"))
+	origin := request.Header.Get("Origin")
+	response.Header().Set("Access-Control-Allow-Origin", origin)
 	response.Header().Set("Access-Control-Allow-Headers", "content-type")
 	response.Header().Set("Access-Control-Allow-Credentials", "true")
 	response.Header().Set("Content-Type", "application/json")
@@ -52,6 +53,7 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 		return
 	}
 
+	trackEntry.Origin = origin
 	exporter, err := exporters.Lookup(h.Config)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
@@ -67,7 +69,7 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 	}
 
 	response.WriteHeader(http.StatusCreated)
-	log.Infof("Tracking dom, record_id: %s, created_at: %d", recordId, trackEntry.CreatedAt)
+	log.Infof("Tracking dom, record_id: %s, created_at: %d, origin: %s", recordId, trackEntry.CreatedAt, origin)
 }
 
 func createRecordCookie(response http.ResponseWriter, request *http.Request) *http.Cookie {
