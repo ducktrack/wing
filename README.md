@@ -27,3 +27,19 @@ To add new dependecies do:
 ```sh
 glide get <dependency>
 ```
+
+## Generate self signed certificate
+
+Generate private key (.key)
+
+```sh
+# Key considerations for algorithm "ECDSA" ≥ secp384r1
+# List ECDSA the supported curves (openssl ecparam -list_curves)
+openssl ecparam -genkey -name secp384r1 -out server.key
+```
+
+Generation of self-signed(x509) public key (PEM-encodings .pem|.crt) based on the private (.key)
+
+```sh
+openssl req -new -x509 -sha256 -key server.key -out server.crt -days 3650
+```

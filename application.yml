@@ -1,3 +1,6 @@
+# tls_cert_file: server.crt
+# tls_key_file: server.key
+
 exporter: file
 
 file_exporter:

@@ -26,9 +26,15 @@ func main() {
 	log.Infof("Starting Wing at port %s", port)
 
 	http.Handle("/", &handlers.TrackEntryHandler{Config: config})
-
 	host := fmt.Sprintf(":%s", port)
-	http.ListenAndServe(host, nil)
+
+	if config.TLSCertFile != "" && config.TLSKeyFile != "" {
+		log.Infof("Using TLS")
+		http.ListenAndServeTLS(host, config.TLSCertFile, config.TLSKeyFile, nil)
+
+	} else {
+		http.ListenAndServe(host, nil)
+	}
 }
 
 func getPort() string {

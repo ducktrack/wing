@@ -9,6 +9,8 @@ import (
 )
 
 type Config struct {
+	TLSCertFile  string `yaml:"tls_cert_file"`
+	TLSKeyFile   string `yaml:"tls_key_file"`
 	Exporter     string
 	FileExporter FileExporter `yaml:"file_exporter,omitempty"`
 }
