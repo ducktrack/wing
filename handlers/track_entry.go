@@ -70,6 +70,7 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 
 	response.WriteHeader(http.StatusCreated)
 	log.Infof("Tracking dom, record_id: %s, created_at: %d, origin: %s", recordId, trackEntry.CreatedAt, origin)
+	fmt.Fprintf(response, fmt.Sprintf(`{"recorded": true}`))
 }
 
 func createRecordCookie(response http.ResponseWriter, request *http.Request) *http.Cookie {
