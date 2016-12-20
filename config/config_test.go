@@ -20,7 +20,7 @@ func TestWhenFileIsValid(t *testing.T) {
 
 file_exporter:
   folder: /tmp/track_entries`
-	tempFile, err := WriteTempFile(configContent)
+	tempFile, err := writeTempFile(configContent)
 	assert.Nil(t, err)
 	defer os.Remove(tempFile)
 
@@ -32,7 +32,7 @@ file_exporter:
 	assert.Equal(t, "/tmp/track_entries", config.FileExporter.Folder, "should have correct folder")
 }
 
-func WriteTempFile(content string) (fName string, err error) {
+func writeTempFile(content string) (fName string, err error) {
 	byteContent := []byte(content)
 	tempFile, err := ioutil.TempFile("", "example")
 	if err != nil {

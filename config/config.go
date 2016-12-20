@@ -9,14 +9,21 @@ import (
 )
 
 type Config struct {
-	TLSCertFile  string `yaml:"tls_cert_file"`
-	TLSKeyFile   string `yaml:"tls_key_file"`
-	Exporter     string
-	FileExporter FileExporter `yaml:"file_exporter,omitempty"`
+	TLSCertFile   string        `yaml:"tls_cert_file"`
+	TLSKeyFile    string        `yaml:"tls_key_file"`
+	Exporter      string
+	FileExporter  FileExporter  `yaml:"file_exporter,omitempty"`
+	RedisExporter RedisExporter `yaml:"redis_exporter,omitempty"`
 }
 
 type FileExporter struct {
-	Folder string
+	Folder string `yaml:"folder"`
+}
+
+type RedisExporter struct {
+	Host     string `yaml:"host"`
+	Port     int16  `yaml:"port"`
+	PoolSize int    `yaml:"pool_size"`
 }
 
 func ReadConfigFile(path string) (*Config, error) {

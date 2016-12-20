@@ -15,7 +15,8 @@ const RECORD_ID_COOKIE_NAME = "record_id"
 const RECORD_ID_EXPIRATION = 2 * time.Hour
 
 type TrackEntryHandler struct {
-	Config *config.Config
+	Config config.Config
+	Exporter exporters.Exporter
 }
 
 func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *http.Request) {
@@ -35,12 +36,6 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 		return
 	}
 
-	if h.Config == nil {
-		response.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(response, `{"message": "App not configured"}`)
-		return
-	}
-
 	recordCookie := createRecordCookie(response, request)
 	recordId := recordCookie.Value
 
@@ -54,14 +49,7 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 	}
 
 	trackEntry.Origin = origin
-	exporter, err := exporters.Lookup(h.Config)
-	if err != nil {
-		response.WriteHeader(http.StatusUnprocessableEntity)
-		fmt.Fprintf(response, fmt.Sprintf(`{"message": "%s"}`, err.Error()))
-		return
-	}
-
-	err = exporter.Export(&trackEntry, recordId)
+	err = h.Exporter.Export(&trackEntry, recordId)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
 		fmt.Fprintf(response, fmt.Sprintf(`{"message": "%s"}`, err.Error()))

@@ -46,3 +46,7 @@ func (fe *FileExporter) Export(trackEntry *TrackEntry, recordId string) error {
 
 	return nil
 }
+
+func (fe *FileExporter) Stop() error {
+	return nil
+}

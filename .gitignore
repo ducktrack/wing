@@ -5,3 +5,4 @@ wing
 vendor/
 *coverprofile
 wing.iml
+.idea/

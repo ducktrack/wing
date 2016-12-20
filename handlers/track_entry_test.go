@@ -9,9 +9,11 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"github.com/duckclick/wing/exporters"
 )
 
 var appConfig config.Config
+var fileExporter exporters.Exporter
 
 func TestMain(m *testing.M) {
 	appConfig = config.Config{
@@ -20,13 +22,14 @@ func TestMain(m *testing.M) {
 			Folder: "/tmp/test/track_entries",
 		},
 	}
+	fileExporter, _ = exporters.Lookup(&appConfig)
 
 	os.Exit(m.Run())
 }
 
 func TestWhenRequestMethodOptions(t *testing.T) {
 	rr := httptest.NewRecorder()
-	handler := &TrackEntryHandler{Config: &appConfig}
+	handler := &TrackEntryHandler{Config: appConfig, Exporter: fileExporter}
 
 	req, _ := http.NewRequest("OPTIONS", "/", nil)
 	handler.ServeHTTP(rr, req)
@@ -38,7 +41,7 @@ func TestWhenRequestMethodOptions(t *testing.T) {
 func TestWhenRequestMethodDifferentThanPost(t *testing.T) {
 	for _, method := range []string{"GET", "PUT", "DELETE", "PATCH"} {
 		rr := httptest.NewRecorder()
-		handler := &TrackEntryHandler{Config: &appConfig}
+		handler := &TrackEntryHandler{Config: appConfig, Exporter: fileExporter}
 		req, _ := http.NewRequest(method, "/", nil)
 		handler.ServeHTTP(rr, req)
 
@@ -49,7 +52,7 @@ func TestWhenRequestMethodDifferentThanPost(t *testing.T) {
 
 func TestWhenJsonPayloadIsInvalid(t *testing.T) {
 	rr := httptest.NewRecorder()
-	handler := &TrackEntryHandler{Config: &appConfig}
+	handler := &TrackEntryHandler{Config: appConfig, Exporter: fileExporter}
 
 	req, _ := http.NewRequest("POST", "/", strings.NewReader("{")) // invalid
 	req.Header.Set("Content-Type", "application/json")
@@ -61,7 +64,7 @@ func TestWhenJsonPayloadIsInvalid(t *testing.T) {
 
 func TestWhenBase64IsInvalid(t *testing.T) {
 	rr := httptest.NewRecorder()
-	handler := &TrackEntryHandler{Config: &appConfig}
+	handler := &TrackEntryHandler{Config: appConfig, Exporter: fileExporter}
 
 	req, _ := http.NewRequest(
 		"POST",
@@ -78,7 +81,7 @@ func TestWhenBase64IsInvalid(t *testing.T) {
 
 func TestWhenItSavesTheRequest(t *testing.T) {
 	rr := httptest.NewRecorder()
-	handler := &TrackEntryHandler{Config: &appConfig}
+	handler := &TrackEntryHandler{Config: appConfig, Exporter: fileExporter}
 
 	req, _ := http.NewRequest(
 		"POST",
