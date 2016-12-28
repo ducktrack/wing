@@ -28,6 +28,7 @@ func main() {
 		log.WithError(err).Fatal("Failed to instantiate an exporter")
 		os.Exit(1)
 	}
+	defer exporter.Stop()
 
 	log.Infof("Using exporter: %s", wingConfig.Exporter)
 	log.Infof("Starting Wing at port %s", port)

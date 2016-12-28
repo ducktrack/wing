@@ -6,3 +6,4 @@ vendor/
 *coverprofile
 wing.iml
 .idea/
+*.rdb

@@ -15,7 +15,7 @@ const RECORD_ID_COOKIE_NAME = "record_id"
 const RECORD_ID_EXPIRATION = 2 * time.Hour
 
 type TrackEntryHandler struct {
-	Config config.Config
+	Config   config.Config
 	Exporter exporters.Exporter
 }
 
@@ -32,7 +32,7 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 
 	if request.Method != "POST" {
 		response.WriteHeader(http.StatusMethodNotAllowed)
-		fmt.Fprintf(response, `{"message": "Method Not Allowed"}`)
+		fmt.Fprint(response, `{"message": "Method Not Allowed"}`)
 		return
 	}
 
@@ -44,20 +44,22 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 	err := decoder.Decode(&trackEntry)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
-		fmt.Fprintf(response, `{"message": "Invalid JSON payload"}`)
+		fmt.Fprint(response, `{"message": "Invalid JSON payload"}`)
 		return
 	}
 
 	trackEntry.Origin = origin
+
+	log.Infof("Tracking dom, record_id: %s, created_at: %d, origin: %s", recordId, trackEntry.CreatedAt, origin)
 	err = h.Exporter.Export(&trackEntry, recordId)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
 		fmt.Fprintf(response, fmt.Sprintf(`{"message": "%s"}`, err.Error()))
+		log.Infof("Tracking dom, record_id: %s, created_at: %d, origin: %s", recordId, trackEntry.CreatedAt, origin)
 		return
 	}
 
 	response.WriteHeader(http.StatusCreated)
-	log.Infof("Tracking dom, record_id: %s, created_at: %d, origin: %s", recordId, trackEntry.CreatedAt, origin)
 }
 
 func createRecordCookie(response http.ResponseWriter, request *http.Request) *http.Cookie {

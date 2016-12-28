@@ -23,7 +23,6 @@ type FileExporter struct {
 type RedisExporter struct {
 	Host     string `yaml:"host"`
 	Port     int16  `yaml:"port"`
-	PoolSize int    `yaml:"pool_size"`
 }
 
 func ReadConfigFile(path string) (*Config, error) {

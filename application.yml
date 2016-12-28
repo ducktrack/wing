@@ -2,6 +2,10 @@
 # tls_key_file: server.key
 
 exporter: file
-
 file_exporter:
   folder: /tmp/track_entries
+
+#exporter: redis
+#redis_exporter:
+#  host: localhost
+#  port: 6379
