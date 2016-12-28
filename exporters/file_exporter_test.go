@@ -9,6 +9,7 @@ import (
 	"os"
 	"testing"
 	"encoding/base64"
+	"github.com/duckclick/wing/trackentry"
 )
 
 func TestExport(t *testing.T) {
@@ -19,7 +20,7 @@ func TestExport(t *testing.T) {
 	htmlSample := "<html><head></head><body></body></html>"
 	htmlAsBase64 := base64.StdEncoding.EncodeToString([]byte(htmlSample))
 
-	trackEntry := &TrackEntry{
+	trackEntry := &trackentry.TrackEntry{
 		CreatedAt: 123456,
 		Markup:    htmlAsBase64,
 	}
@@ -48,7 +49,7 @@ func TestStripScriptTags(t *testing.T) {
 	htmlSample := `<html><head><script src="evil"></script></head><body><script src="g-evil"></script></body></html>`
 	htmlAsBase64 := base64.StdEncoding.EncodeToString([]byte(htmlSample))
 
-	trackEntry := &TrackEntry{
+	trackEntry := &trackentry.TrackEntry{
 		CreatedAt: 123456,
 		Markup:    htmlAsBase64,
 	}

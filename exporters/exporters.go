@@ -4,16 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/duckclick/wing/config"
+	"github.com/duckclick/wing/trackentry"
 )
 
-type TrackEntry struct {
-	CreatedAt int    `json:"created_at"`
-	Origin    string `json:"origin"`
-	Markup    string `json:"markup"`
-}
-
 type Exporter interface {
-	Export(trackEntry *TrackEntry, recordId string) error
+	Export(trackEntry *trackentry.TrackEntry, recordId string) error
 	Stop() error
 }
 

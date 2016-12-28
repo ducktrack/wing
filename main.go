@@ -4,7 +4,7 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/duckclick/wing/config"
-	"github.com/duckclick/wing/handlers"
+	"github.com/duckclick/wing/handler"
 	"net/http"
 	"os"
 	"github.com/duckclick/wing/exporters"
@@ -33,7 +33,7 @@ func main() {
 	log.Infof("Using exporter: %s", wingConfig.Exporter)
 	log.Infof("Starting Wing at port %s", port)
 
-	http.Handle("/", &handlers.TrackEntryHandler{Config: *wingConfig, Exporter: exporter})
+	http.Handle("/", &handler.TrackEntryHandler{Config: *wingConfig, Exporter: exporter})
 	host := fmt.Sprintf(":%s", port)
 
 	if wingConfig.TLSCertFile != "" && wingConfig.TLSKeyFile != "" {

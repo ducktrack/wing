@@ -1,4 +1,4 @@
-package handlers
+package handler
 
 import (
 	"encoding/json"
@@ -9,6 +9,7 @@ import (
 	"github.com/satori/go.uuid"
 	"net/http"
 	"time"
+	"github.com/duckclick/wing/trackentry"
 )
 
 const RECORD_ID_COOKIE_NAME = "record_id"
@@ -40,7 +41,7 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 	recordId := recordCookie.Value
 
 	decoder := json.NewDecoder(request.Body)
-	var trackEntry exporters.TrackEntry
+	var trackEntry trackentry.TrackEntry
 	err := decoder.Decode(&trackEntry)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)

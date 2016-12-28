@@ -9,6 +9,7 @@ import (
 	"github.com/garyburd/redigo/redis"
 	"github.com/rafaeljusto/redigomock"
 	"errors"
+	"github.com/duckclick/wing/trackentry"
 )
 
 func TestRedisExport(t *testing.T) {
@@ -20,7 +21,7 @@ func TestRedisExport(t *testing.T) {
 	htmlSample := "<html><head></head><body></body></html>"
 	htmlAsBase64 := base64.StdEncoding.EncodeToString([]byte(htmlSample))
 
-	trackEntry := &TrackEntry{
+	trackEntry := &trackentry.TrackEntry{
 		CreatedAt: 123456,
 		Markup:    htmlAsBase64,
 	}
@@ -51,7 +52,7 @@ func TestExportReturnsErrorOnRedisError(t *testing.T) {
 	htmlSample := "<html><head></head><body></body></html>"
 	htmlAsBase64 := base64.StdEncoding.EncodeToString([]byte(htmlSample))
 
-	trackEntry := &TrackEntry{
+	trackEntry := &trackentry.TrackEntry{
 		CreatedAt: 123456,
 		Markup:    htmlAsBase64,
 	}

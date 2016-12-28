@@ -1,4 +1,4 @@
-package handlers
+package handler
 
 import (
 	"fmt"
@@ -29,10 +29,10 @@ func TestMain(m *testing.M) {
 
 func TestWhenRequestMethodOptions(t *testing.T) {
 	rr := httptest.NewRecorder()
-	handler := &TrackEntryHandler{Config: appConfig, Exporter: fileExporter}
+	h := &TrackEntryHandler{Config: appConfig, Exporter: fileExporter}
 
 	req, _ := http.NewRequest("OPTIONS", "/", nil)
-	handler.ServeHTTP(rr, req)
+	h.ServeHTTP(rr, req)
 
 	assert.Equal(t, 200, rr.Code, "should respond with 200 to OPTIONS request")
 	assert.Equal(t, "", rr.Body.String(), "should respond with an empty body")
@@ -41,9 +41,9 @@ func TestWhenRequestMethodOptions(t *testing.T) {
 func TestWhenRequestMethodDifferentThanPost(t *testing.T) {
 	for _, method := range []string{"GET", "PUT", "DELETE", "PATCH"} {
 		rr := httptest.NewRecorder()
-		handler := &TrackEntryHandler{Config: appConfig, Exporter: fileExporter}
+		h := &TrackEntryHandler{Config: appConfig, Exporter: fileExporter}
 		req, _ := http.NewRequest(method, "/", nil)
-		handler.ServeHTTP(rr, req)
+		h.ServeHTTP(rr, req)
 
 		assert.Equal(t, 405, rr.Code, "should respond with 405 to unhandled method")
 		assert.Equal(t, `{"message": "Method Not Allowed"}`, rr.Body.String(), "should respond with an error message")
@@ -52,11 +52,11 @@ func TestWhenRequestMethodDifferentThanPost(t *testing.T) {
 
 func TestWhenJsonPayloadIsInvalid(t *testing.T) {
 	rr := httptest.NewRecorder()
-	handler := &TrackEntryHandler{Config: appConfig, Exporter: fileExporter}
+	h := &TrackEntryHandler{Config: appConfig, Exporter: fileExporter}
 
 	req, _ := http.NewRequest("POST", "/", strings.NewReader("{")) // invalid
 	req.Header.Set("Content-Type", "application/json")
-	handler.ServeHTTP(rr, req)
+	h.ServeHTTP(rr, req)
 
 	assert.Equal(t, 422, rr.Code, "should respond with 422 to invalid payload")
 	assert.Equal(t, `{"message": "Invalid JSON payload"}`, rr.Body.String(), "should respond with an error message")
@@ -64,7 +64,7 @@ func TestWhenJsonPayloadIsInvalid(t *testing.T) {
 
 func TestWhenBase64IsInvalid(t *testing.T) {
 	rr := httptest.NewRecorder()
-	handler := &TrackEntryHandler{Config: appConfig, Exporter: fileExporter}
+	h := &TrackEntryHandler{Config: appConfig, Exporter: fileExporter}
 
 	req, _ := http.NewRequest(
 		"POST",
@@ -73,15 +73,15 @@ func TestWhenBase64IsInvalid(t *testing.T) {
 	)
 
 	req.Header.Set("Content-Type", "application/json")
-	handler.ServeHTTP(rr, req)
+	h.ServeHTTP(rr, req)
 
 	assert.Equal(t, 422, rr.Code, "should respond with 422 to invalid base64 payload")
-	assert.Equal(t, `{"message": "Invalid base64 payload"}`, rr.Body.String(), "should respond with an error message")
+	assert.Equal(t, `{"message": "Failed to rinse the markup"}`, rr.Body.String(), "should respond with an error message")
 }
 
 func TestWhenItSavesTheRequest(t *testing.T) {
 	rr := httptest.NewRecorder()
-	handler := &TrackEntryHandler{Config: appConfig, Exporter: fileExporter}
+	h := &TrackEntryHandler{Config: appConfig, Exporter: fileExporter}
 
 	req, _ := http.NewRequest(
 		"POST",
@@ -90,7 +90,7 @@ func TestWhenItSavesTheRequest(t *testing.T) {
 	)
 
 	req.Header.Set("Content-Type", "application/json")
-	handler.ServeHTTP(rr, req)
+	h.ServeHTTP(rr, req)
 
 	assert.Equal(t, 201, rr.Code, "should respond with 201 to to valid request")
 	assert.Equal(t, "", rr.Body.String(), "should respond with an empty body")
@@ -98,5 +98,5 @@ func TestWhenItSavesTheRequest(t *testing.T) {
 	request := http.Request{Header: http.Header{"Cookie": rr.HeaderMap["Set-Cookie"]}}
 	_, err := request.Cookie(RECORD_ID_COOKIE_NAME)
 
-	assert.Nil(t, err, fmt.Sprintf("expected handler to create '%s' cookie", RECORD_ID_COOKIE_NAME))
+	assert.Nil(t, err, fmt.Sprintf("expected h to create '%s' cookie", RECORD_ID_COOKIE_NAME))
 }

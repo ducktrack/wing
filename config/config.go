@@ -36,11 +36,11 @@ func ReadConfigFile(path string) (*Config, error) {
 		return nil, err
 	}
 
-	config := &Config{}
-	err = yaml.Unmarshal([]byte(ymlBytes), &config)
+	c := &Config{}
+	err = yaml.Unmarshal([]byte(ymlBytes), &c)
 	if err != nil {
 		return nil, err
 	}
 
-	return config, nil
+	return c, nil
 }

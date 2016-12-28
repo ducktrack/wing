@@ -5,12 +5,10 @@ import (
 	"github.com/garyburd/redigo/redis"
 	"fmt"
 	"time"
-	"encoding/base64"
-	"github.com/PuerkitoBio/goquery"
 	log "github.com/Sirupsen/logrus"
-	"strings"
 	"errors"
 	"strconv"
+	"github.com/duckclick/wing/trackentry"
 )
 
 type redisExporter struct {
@@ -45,23 +43,10 @@ func (re *redisExporter) Stop() error {
 	return re.pool.Close()
 }
 
-func (re *redisExporter) Export(trackEntry *TrackEntry, recordId string) error {
-	htmlBytes, err := base64.StdEncoding.DecodeString(trackEntry.Markup)
+func (re *redisExporter) Export(trackEntry *trackentry.TrackEntry, recordId string) error {
+	markup, err := trackEntry.Rinse()
 	if err != nil {
-		return errors.New("Invalid base64 payload")
-	}
-
-	doc, err := goquery.NewDocumentFromReader(strings.NewReader(string(htmlBytes)))
-	if err != nil {
-		return errors.New("Failed to parse HTML")
-	}
-
-	scripts := doc.Find("script")
-	scripts.Each(func(i int, s *goquery.Selection) { s.Remove() })
-
-	content, err := doc.Html()
-	if err != nil {
-		return errors.New("Failed to generate secure HTML")
+		return errors.New("Failed to rinse the markup")
 	}
 
 	if re.pool == nil {
@@ -72,7 +57,7 @@ func (re *redisExporter) Export(trackEntry *TrackEntry, recordId string) error {
 
 	createdAtStr := strconv.Itoa(trackEntry.CreatedAt)
 	log.Infof("Storing redis entry at: %s, %s", recordId, createdAtStr)
-	reply, err := conn.Do("HSET", recordId, createdAtStr, content)
+	reply, err := conn.Do("HSET", recordId, createdAtStr, markup)
 
 	if err != nil {
 		return errors.New(fmt.Sprintf("Failed to store track entry in redis, error: %s, reply: %s", err, reply))
