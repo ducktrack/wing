@@ -1,10 +1,9 @@
 package exporters
 
 import (
-	"errors"
-	"fmt"
 	"github.com/duckclick/wing/config"
 	"github.com/duckclick/wing/trackentry"
+	"github.com/pkg/errors"
 )
 
 type Exporter interface {
@@ -18,8 +17,7 @@ func Lookup(config *config.Config) (Exporter, error) {
 		return &FileExporter{Config: config.FileExporter}, nil
 	case "redis":
 		return NewRedisExporter(config.RedisExporter), nil
+	default:
+		return nil, errors.Errorf("No exporter found for '%s'", config.Exporter)
 	}
-
-	errorMessage := fmt.Sprintf("No exporter found for '%s'", config.Exporter)
-	return nil, errors.New(errorMessage)
 }

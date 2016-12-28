@@ -2,7 +2,7 @@ package trackentry
 
 import (
 	"encoding/base64"
-	"errors"
+	"github.com/pkg/errors"
 )
 
 type TrackEntry struct {
@@ -13,9 +13,5 @@ type TrackEntry struct {
 
 func (trackEntry *TrackEntry) MarkupBytes() ([]byte, error) {
 	bytes, err := base64.StdEncoding.DecodeString(trackEntry.Markup)
-	if err != nil {
-		return nil, errors.New("Invalid base64 payload")
-	}
-
-	return bytes, nil
+	return bytes, errors.Wrap(err, "Invalid base64 payload")
 }

@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 	log "github.com/Sirupsen/logrus"
-	"errors"
 	"strconv"
 	"github.com/duckclick/wing/trackentry"
+	"github.com/pkg/errors"
 )
 
 type redisExporter struct {
@@ -23,18 +23,14 @@ func NewRedisExporter(config config.RedisExporter) *redisExporter {
 }
 
 func (re *redisExporter) Connect() {
+	connString := fmt.Sprintf("%s:%d", re.config.Host, re.config.Port)
+	log.Infof("Redis connection string: %s", connString)
+
 	re.pool = &redis.Pool{
 		MaxIdle:     3,
 		IdleTimeout: 240 * time.Second,
 		Dial: func() (redis.Conn, error) {
-			connString := fmt.Sprintf("%s:%d", re.config.Host, re.config.Port)
-			log.Infof("Redis connection string: %s", connString)
-
-			c, err := redis.Dial("tcp", connString)
-			if err != nil {
-				return nil, err
-			}
-			return c, err
+			return redis.Dial("tcp", connString)
 		},
 	}
 }
@@ -46,11 +42,11 @@ func (re *redisExporter) Stop() error {
 func (re *redisExporter) Export(trackEntry *trackentry.TrackEntry, recordId string) error {
 	markup, err := trackEntry.Rinse()
 	if err != nil {
-		return errors.New("Failed to rinse the markup")
+		return errors.Wrap(err, "Failed to rinse the markup")
 	}
 
 	if re.pool == nil {
-		return errors.New("Not connected, must connect first")
+		return errors.New("Not connected to Redis, must connect first")
 	}
 	conn := re.pool.Get()
 	defer conn.Close()
@@ -58,10 +54,5 @@ func (re *redisExporter) Export(trackEntry *trackentry.TrackEntry, recordId stri
 	createdAtStr := strconv.Itoa(trackEntry.CreatedAt)
 	log.Infof("Storing redis entry at: %s, %s", recordId, createdAtStr)
 	reply, err := conn.Do("HSET", recordId, createdAtStr, markup)
-
-	if err != nil {
-		return errors.New(fmt.Sprintf("Failed to store track entry in redis, error: %s, reply: %s", err, reply))
-	}
-
-	return nil
+	return errors.Wrapf(err, "Failed to store track entry in redis, error: %s, reply: %s", err, reply)
 }

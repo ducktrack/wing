@@ -1,11 +1,10 @@
 package config
 
 import (
-	"errors"
-	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
+	"github.com/pkg/errors"
 )
 
 type Config struct {
@@ -27,8 +26,7 @@ type RedisExporter struct {
 
 func ReadConfigFile(path string) (*Config, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		errorMessage := fmt.Sprintf("The configuration file is missing, expected file '%s'", path)
-		return nil, errors.New(errorMessage)
+		return nil, errors.Errorf("The configuration file is missing, expected file '%s'", path)
 	}
 
 	ymlBytes, err := ioutil.ReadFile(path)
@@ -38,9 +36,5 @@ func ReadConfigFile(path string) (*Config, error) {
 
 	c := &Config{}
 	err = yaml.Unmarshal([]byte(ymlBytes), &c)
-	if err != nil {
-		return nil, err
-	}
-
-	return c, nil
+	return c, err
 }

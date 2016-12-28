@@ -76,7 +76,7 @@ func TestWhenBase64IsInvalid(t *testing.T) {
 	h.ServeHTTP(rr, req)
 
 	assert.Equal(t, 422, rr.Code, "should respond with 422 to invalid base64 payload")
-	assert.Equal(t, `{"message": "Failed to rinse the markup"}`, rr.Body.String(), "should respond with an error message")
+	assert.Equal(t, `{"message": "Failed to export track entry"}`, rr.Body.String(), "should respond with an error message")
 }
 
 func TestWhenItSavesTheRequest(t *testing.T) {

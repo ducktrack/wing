@@ -1,12 +1,15 @@
-hash: 2d99cd20538e9f4e8d01d0c57d74a1edac08920e880e01c5e4613ff9417fa8b4
-updated: 2016-12-19T23:40:10.111767168+01:00
+hash: b8663ac2df1a862fb7ac56ecd017833428e07b9b3e8d04e8f4fcb616a76be613
+updated: 2016-12-29T02:13:54.340436929+03:00
 imports:
 - name: github.com/andybalholm/cascadia
   version: 196d48ce4ae8cf1c8f87088d2884eca214240887
 - name: github.com/garyburd/redigo
   version: 8873b2f1995f59d4bcdd2b0dc9858e2cb9bf0c13
   subpackages:
+  - internal
   - redis
+- name: github.com/pkg/errors
+  version: 645ef00459ed84a119197bfb8d8205042c6df63d
 - name: github.com/PuerkitoBio/goquery
   version: 56a198aba89cdf7a612e6c762eff9d788b9f2dae
 - name: github.com/rafaeljusto/redigomock

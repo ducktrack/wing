@@ -1,13 +1,13 @@
 package exporters
 
 import (
-	"errors"
 	"fmt"
 	"github.com/duckclick/wing/config"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"github.com/duckclick/wing/trackentry"
+	"github.com/pkg/errors"
 )
 
 type FileExporter struct {
@@ -17,7 +17,7 @@ type FileExporter struct {
 func (fe *FileExporter) Export(trackEntry *trackentry.TrackEntry, recordId string) error {
 	markup, err := trackEntry.Rinse()
 	if err != nil {
-		return errors.New("Failed to rinse the markup")
+		return errors.Wrap(err, "Failed to rinse the markup")
 	}
 
 	recordPath := filepath.Join(fe.Config.Folder, recordId)
@@ -25,11 +25,7 @@ func (fe *FileExporter) Export(trackEntry *trackentry.TrackEntry, recordId strin
 
 	fileName := filepath.Join(recordPath, fmt.Sprintf("%d.html", trackEntry.CreatedAt))
 	err = ioutil.WriteFile(fileName, []byte(markup), 0644)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Failed to save track entry to '%s'", fileName))
-	}
-
-	return nil
+	return errors.Wrapf(err, "Failed to save track entry to '%s'", fileName)
 }
 
 func (fe *FileExporter) Stop() error {

@@ -37,7 +37,7 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 		return
 	}
 
-	recordCookie := createRecordCookie(response, request)
+	recordCookie := recordCookie(response, request)
 	recordId := recordCookie.Value
 
 	decoder := json.NewDecoder(request.Body)
@@ -54,16 +54,16 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 	log.Infof("Tracking dom, record_id: %s, created_at: %d, origin: %s", recordId, trackEntry.CreatedAt, origin)
 	err = h.Exporter.Export(&trackEntry, recordId)
 	if err != nil {
+		log.WithError(err).Errorf("Failed to export track entry: %+v", trackEntry)
 		response.WriteHeader(http.StatusUnprocessableEntity)
-		fmt.Fprintf(response, fmt.Sprintf(`{"message": "%s"}`, err.Error()))
-		log.Infof("Tracking dom, record_id: %s, created_at: %d, origin: %s", recordId, trackEntry.CreatedAt, origin)
+		fmt.Fprint(response, `{"message": "Failed to export track entry"}`)
 		return
 	}
 
 	response.WriteHeader(http.StatusCreated)
 }
 
-func createRecordCookie(response http.ResponseWriter, request *http.Request) *http.Cookie {
+func recordCookie(response http.ResponseWriter, request *http.Request) *http.Cookie {
 	cookie, err := request.Cookie(RECORD_ID_COOKIE_NAME)
 
 	if err != nil || cookie.Value == "" {
