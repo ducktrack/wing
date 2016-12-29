@@ -61,6 +61,7 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 	}
 
 	response.WriteHeader(http.StatusCreated)
+	fmt.Fprint(response, `{"recorded": true}`)
 }
 
 func recordCookie(response http.ResponseWriter, request *http.Request) *http.Cookie {

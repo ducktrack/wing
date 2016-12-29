@@ -93,7 +93,7 @@ func TestWhenItSavesTheRequest(t *testing.T) {
 	h.ServeHTTP(rr, req)
 
 	assert.Equal(t, 201, rr.Code, "should respond with 201 to to valid request")
-	assert.Equal(t, "", rr.Body.String(), "should respond with an empty body")
+	assert.Equal(t, `{"recorded": true}`, rr.Body.String(), "should respond with valid json")
 
 	request := http.Request{Header: http.Header{"Cookie": rr.HeaderMap["Set-Cookie"]}}
 	_, err := request.Cookie(RECORD_ID_COOKIE_NAME)
