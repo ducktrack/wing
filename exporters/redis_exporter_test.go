@@ -10,26 +10,30 @@ import (
 	"github.com/rafaeljusto/redigomock"
 	"errors"
 	"github.com/duckclick/wing/trackentry"
+	"os"
 )
 
-func TestRedisExport(t *testing.T) {
+var htmlSample string
+var trackEntry *trackentry.TrackEntry
+var recordId string
+var exporter redisExporter
+var mockedConnection *redigomock.Conn
+
+func TestMain(m *testing.M) {
+	htmlSample = "<html><head></head><body></body></html>"
+	trackEntry = &trackentry.TrackEntry{
+		CreatedAt: 123456,
+		Markup:    base64.StdEncoding.EncodeToString([]byte(htmlSample)),
+	}
+
+	recordId = uuid.NewV4().String()
+
 	exporterConfig := config.RedisExporter{
 		Host: "foo",
 		Port: 1234,
 	}
-
-	htmlSample := "<html><head></head><body></body></html>"
-	htmlAsBase64 := base64.StdEncoding.EncodeToString([]byte(htmlSample))
-
-	trackEntry := &trackentry.TrackEntry{
-		CreatedAt: 123456,
-		Markup:    htmlAsBase64,
-	}
-
-	recordId := uuid.NewV4().String()
-
-	exporter := redisExporter{config: exporterConfig}
-	mockedConnection := redigomock.NewConn()
+	exporter = redisExporter{config: exporterConfig}
+	mockedConnection = redigomock.NewConn()
 	exporter.pool = &redis.Pool{
 		Dial: func() (redis.Conn, error) {
 			return mockedConnection, nil
@@ -37,6 +41,10 @@ func TestRedisExport(t *testing.T) {
 	}
 	defer exporter.Stop()
 
+	os.Exit(m.Run())
+}
+
+func TestRedisExport(t *testing.T) {
 	mockedConnection.Command("HSET", recordId, "123456", htmlSample).Expect(nil)
 
 	err := exporter.Export(trackEntry, recordId)
@@ -44,30 +52,6 @@ func TestRedisExport(t *testing.T) {
 }
 
 func TestExportReturnsErrorOnRedisError(t *testing.T) {
-	exporterConfig := config.RedisExporter{
-		Host: "foo",
-		Port: 1234,
-	}
-
-	htmlSample := "<html><head></head><body></body></html>"
-	htmlAsBase64 := base64.StdEncoding.EncodeToString([]byte(htmlSample))
-
-	trackEntry := &trackentry.TrackEntry{
-		CreatedAt: 123456,
-		Markup:    htmlAsBase64,
-	}
-
-	recordId := uuid.NewV4().String()
-
-	exporter := redisExporter{config: exporterConfig}
-	mockedConnection := redigomock.NewConn()
-	exporter.pool = &redis.Pool{
-		Dial: func() (redis.Conn, error) {
-			return mockedConnection, nil
-		},
-	}
-	defer exporter.Stop()
-
 	mockedConnection.Command("HSET", recordId, "123456", htmlSample).ExpectError(errors.New("Redis error"))
 
 	err := exporter.Export(trackEntry, recordId)
