@@ -16,7 +16,7 @@ import (
 var htmlSample string
 var trackEntry *trackentry.TrackEntry
 var recordId string
-var exporter redisExporter
+var exporter *redisExporter
 var mockedConnection *redigomock.Conn
 
 func TestMain(m *testing.M) {
@@ -32,7 +32,7 @@ func TestMain(m *testing.M) {
 		Host: "foo",
 		Port: 1234,
 	}
-	exporter = redisExporter{config: exporterConfig}
+	exporter = &redisExporter{config: exporterConfig}
 	mockedConnection = redigomock.NewConn()
 	exporter.pool = &redis.Pool{
 		Dial: func() (redis.Conn, error) {
