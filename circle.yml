@@ -22,6 +22,6 @@ test:
     - go get github.com/go-playground/overalls
     - go get github.com/mattn/goveralls
   override:
-    - overalls -project=github.com/duckclick/wing -covermode=count
+    - $GOPATH/bin/overalls -project=github.com/duckclick/wing -covermode=count
   post:
     - cd "$APP_PATH" && goveralls -coverprofile=$APP_PATH/overalls.coverprofile -service=circle-ci -repotoken=$COVERALLS_TOKEN
