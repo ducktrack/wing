@@ -24,4 +24,4 @@ test:
   override:
     - cd "$APP_PATH" && overalls -project=github.com/duckclick/wing -covermode=count -debug -- -race -v
   post:
-    - cd "$APP_PATH" && goveralls -coverprofile=overalls.coverprofile -service=circle-ci -repotoken=$COVERALLS_TOKEN
+    - cd "$APP_PATH" && goveralls -coverprofile=$APP_PATH/overalls.coverprofile -service=circle-ci -repotoken=$COVERALLS_TOKEN
