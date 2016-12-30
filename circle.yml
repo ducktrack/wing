@@ -1,6 +1,7 @@
 machine:
   environment:
-    IMPORT_PATH: "/home/ubuntu/.go_workspace/src/github.com/duckclick"
+    GO_PATH: "/home/ubuntu/.go_workspace"
+    IMPORT_PATH: "$GO_PATH/src/github.com/duckclick"
     APP_PATH: "$IMPORT_PATH/wing"
     GODIST: "go1.7.4.linux-amd64.tar.gz"
   post:
