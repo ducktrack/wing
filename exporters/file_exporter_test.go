@@ -1,15 +1,15 @@
 package exporters
 
 import (
+	"encoding/base64"
 	"fmt"
 	"github.com/duckclick/wing/config"
+	"github.com/duckclick/wing/trackentry"
 	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
 	"testing"
-	"encoding/base64"
-	"github.com/duckclick/wing/trackentry"
 )
 
 func TestExport(t *testing.T) {
@@ -25,13 +25,13 @@ func TestExport(t *testing.T) {
 		Markup:    htmlAsBase64,
 	}
 
-	recordId := uuid.NewV4().String()
+	recordID := uuid.NewV4().String()
 
 	exporter := FileExporter{Config: exporterConfig}
-	err := exporter.Export(trackEntry, recordId)
+	err := exporter.Export(trackEntry, recordID)
 	assert.Nil(t, err, "export should succeed")
 
-	recordPath := fmt.Sprintf("/tmp/test/track_entries/%s/%d.html", recordId, trackEntry.CreatedAt)
+	recordPath := fmt.Sprintf("/tmp/test/track_entries/%s/%d.html", recordID, trackEntry.CreatedAt)
 	if _, err := os.Stat(recordPath); os.IsNotExist(err) {
 		fmt.Sprintf("FileExporter#Export failed to save track entry, expected:\n%v\n to exist", recordPath)
 		t.FailNow()

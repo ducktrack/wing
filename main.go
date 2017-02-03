@@ -4,13 +4,13 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/duckclick/wing/config"
+	"github.com/duckclick/wing/exporters"
 	"github.com/duckclick/wing/handler"
 	"net/http"
 	"os"
-	"github.com/duckclick/wing/exporters"
 )
 
-const DEFAULT_CONFIG_FILE = "application.yml"
+const defaultConfigFile = "application.yml"
 
 func main() {
 	port := getPort()
@@ -57,7 +57,7 @@ func getPort() string {
 func getConfigFilePath() string {
 	configFilePath := os.Getenv("CONFIG")
 	if len(configFilePath) == 0 {
-		configFilePath = DEFAULT_CONFIG_FILE
+		configFilePath = defaultConfigFile
 	}
 
 	return configFilePath

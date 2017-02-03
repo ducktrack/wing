@@ -1,9 +1,9 @@
 package trackentry
 
 import (
+	"encoding/base64"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"encoding/base64"
 )
 
 func TestStripScriptTags(t *testing.T) {
@@ -17,4 +17,3 @@ func TestStripScriptTags(t *testing.T) {
 	assert.Nil(t, err, "rinse should succeed")
 	assert.Equal(t, "<html><head></head><body></body></html>", string(rinsedMarkup), "script tags should be removed")
 }
-

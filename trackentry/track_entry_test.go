@@ -1,9 +1,9 @@
 package trackentry
 
 import (
-	"testing"
 	"encoding/base64"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestDecodeBase64(t *testing.T) {

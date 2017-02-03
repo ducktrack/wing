@@ -3,13 +3,13 @@ package handler
 import (
 	"fmt"
 	"github.com/duckclick/wing/config"
+	"github.com/duckclick/wing/exporters"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
-	"github.com/duckclick/wing/exporters"
 )
 
 var appConfig config.Config
@@ -96,7 +96,7 @@ func TestWhenItSavesTheRequest(t *testing.T) {
 	assert.Equal(t, `{"recorded": true}`, rr.Body.String(), "should respond with valid json")
 
 	request := http.Request{Header: http.Header{"Cookie": rr.HeaderMap["Set-Cookie"]}}
-	_, err := request.Cookie(RECORD_ID_COOKIE_NAME)
+	_, err := request.Cookie(RecordIDCookieName)
 
-	assert.Nil(t, err, fmt.Sprintf("expected h to create '%s' cookie", RECORD_ID_COOKIE_NAME))
+	assert.Nil(t, err, fmt.Sprintf("expected h to create '%s' cookie", RecordIDCookieName))
 }

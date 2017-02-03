@@ -6,11 +6,13 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Exporter interface
 type Exporter interface {
-	Export(trackEntry *trackentry.TrackEntry, recordId string) error
+	Export(trackEntry *trackentry.TrackEntry, recordID string) error
 	Stop() error
 }
 
+// Lookup returns an exporter
 func Lookup(config *config.Config) (Exporter, error) {
 	switch config.Exporter {
 	case "file":

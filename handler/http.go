@@ -6,6 +6,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/duckclick/wing/config"
 	"github.com/duckclick/wing/exporters"
+	"github.com/duckclick/wing/trackentry"
 	"github.com/satori/go.uuid"
 	"net/http"
 	"time"
@@ -14,7 +15,13 @@ import (
 
 const RECORD_ID_COOKIE_NAME = "record_id"
 const RECORD_ID_EXPIRATION = 2 * time.Hour
+// cookie name
+const RecordIDCookieName = "record_id"
 
+// expiration time
+const RecordIDExpiration = 2 * time.Hour
+
+// TrackEntryHandler definition
 type TrackEntryHandler struct {
 	Config   config.Config
 	Exporter exporters.Exporter
@@ -39,6 +46,7 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 
 	recordCookie := recordCookie(response, request)
 	recordId := recordCookie.Value
+	recordID := recordCookie.Value
 
 	decoder := json.NewDecoder(request.Body)
 	var trackEntry trackentry.TrackEntry
@@ -53,6 +61,8 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 
 	log.Infof("Tracking dom, record_id: %s, created_at: %d, origin: %s", recordId, trackEntry.CreatedAt, origin)
 	err = h.Exporter.Export(&trackEntry, recordId)
+	log.Infof("Tracking dom, record_id: %s, created_at: %d, origin: %s", recordID, trackEntry.CreatedAt, origin)
+	err = h.Exporter.Export(&trackEntry, recordID)
 	if err != nil {
 		log.WithError(err).Errorf("Failed to export track entry: %+v", trackEntry)
 		response.WriteHeader(http.StatusUnprocessableEntity)
@@ -66,12 +76,15 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 
 func recordCookie(response http.ResponseWriter, request *http.Request) *http.Cookie {
 	cookie, err := request.Cookie(RECORD_ID_COOKIE_NAME)
+	cookie, err := request.Cookie(RecordIDCookieName)
 
 	if err != nil || cookie.Value == "" {
 		cookie = &http.Cookie{
 			Name:     RECORD_ID_COOKIE_NAME,
+			Name:     RecordIDCookieName,
 			Value:    uuid.NewV4().String(),
 			Expires:  time.Now().Add(RECORD_ID_EXPIRATION),
+			Expires:  time.Now().Add(RecordIDExpiration),
 			Path:     "/",
 			HttpOnly: true,
 		}

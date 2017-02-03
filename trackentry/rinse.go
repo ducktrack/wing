@@ -1,12 +1,13 @@
 package trackentry
 
 import (
-	"github.com/PuerkitoBio/goquery"
 	"bytes"
+	"github.com/PuerkitoBio/goquery"
 	"github.com/pkg/errors"
 )
 
-func (trackEntry *TrackEntry) Rinse() (secureMarkup string, error error) {
+// Rinse generates a secure markup (no script tags)
+func (trackEntry *TrackEntry) Rinse() (string, error) {
 	htmlBytes, err := trackEntry.MarkupBytes()
 	if err != nil {
 		return "", errors.Wrap(err, "Failed to get the markup")
@@ -23,4 +24,3 @@ func (trackEntry *TrackEntry) Rinse() (secureMarkup string, error error) {
 	content, err := doc.Html()
 	return content, errors.Wrap(err, "Failed to generate secure HTML")
 }
-

@@ -1,22 +1,22 @@
 package exporters
 
 import (
-	"github.com/stretchr/testify/assert"
-	"testing"
 	"encoding/base64"
+	"errors"
 	"github.com/duckclick/wing/config"
-	"github.com/satori/go.uuid"
+	"github.com/duckclick/wing/trackentry"
 	"github.com/garyburd/redigo/redis"
 	"github.com/rafaeljusto/redigomock"
-	"errors"
-	"github.com/duckclick/wing/trackentry"
+	"github.com/satori/go.uuid"
+	"github.com/stretchr/testify/assert"
 	"os"
+	"testing"
 )
 
 var htmlSample string
 var trackEntry *trackentry.TrackEntry
-var recordId string
-var exporter *redisExporter
+var recordID string
+var exporter *RedisExporter
 var mockedConnection *redigomock.Conn
 
 func TestMain(m *testing.M) {
@@ -26,13 +26,13 @@ func TestMain(m *testing.M) {
 		Markup:    base64.StdEncoding.EncodeToString([]byte(htmlSample)),
 	}
 
-	recordId = uuid.NewV4().String()
+	recordID = uuid.NewV4().String()
 
 	exporterConfig := config.RedisExporter{
 		Host: "foo",
 		Port: 1234,
 	}
-	exporter = &redisExporter{config: exporterConfig}
+	exporter = &RedisExporter{config: exporterConfig}
 	mockedConnection = redigomock.NewConn()
 	exporter.pool = &redis.Pool{
 		Dial: func() (redis.Conn, error) {
@@ -45,15 +45,15 @@ func TestMain(m *testing.M) {
 }
 
 func TestRedisExport(t *testing.T) {
-	mockedConnection.Command("HSET", recordId, "123456", htmlSample).Expect(nil)
+	mockedConnection.Command("HSET", recordID, "123456", htmlSample).Expect(nil)
 
-	err := exporter.Export(trackEntry, recordId)
+	err := exporter.Export(trackEntry, recordID)
 	assert.Nil(t, err, "export should succeed")
 }
 
 func TestExportReturnsErrorOnRedisError(t *testing.T) {
-	mockedConnection.Command("HSET", recordId, "123456", htmlSample).ExpectError(errors.New("Redis error"))
+	mockedConnection.Command("HSET", recordID, "123456", htmlSample).ExpectError(errors.New("Redis error"))
 
-	err := exporter.Export(trackEntry, recordId)
+	err := exporter.Export(trackEntry, recordID)
 	assert.NotNil(t, err, "export should fail with an error")
 }
