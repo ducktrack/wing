@@ -2,7 +2,11 @@
 
 ## Running
 
-`go run main.go`
+```sh
+go run main.go
+# or
+# CONFIG=path/to/application.yml go run main.go
+```
 
 ## Running tests
 

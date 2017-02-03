@@ -69,7 +69,7 @@ func TestWhenBase64IsInvalid(t *testing.T) {
 	req, _ := http.NewRequest(
 		"POST",
 		"/",
-		strings.NewReader(`{"created_at": 12345, "markup": "123"}`),
+		strings.NewReader(`[{"created_at": 12345, "markup": "123"}]`),
 	)
 
 	req.Header.Set("Content-Type", "application/json")
@@ -86,7 +86,7 @@ func TestWhenItSavesTheRequest(t *testing.T) {
 	req, _ := http.NewRequest(
 		"POST",
 		"/",
-		strings.NewReader(`{"created_at": 1480979268, "markup": "PGh0bWw+PC9odG1sPg=="}`),
+		strings.NewReader(`[{"created_at": 1480979268, "markup": "PGh0bWw+PC9odG1sPg=="}]`),
 	)
 
 	req.Header.Set("Content-Type", "application/json")

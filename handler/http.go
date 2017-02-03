@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
@@ -8,13 +9,11 @@ import (
 	"github.com/duckclick/wing/exporters"
 	"github.com/duckclick/wing/trackentry"
 	"github.com/satori/go.uuid"
+	"io"
 	"net/http"
 	"time"
-	"github.com/duckclick/wing/trackentry"
 )
 
-const RECORD_ID_COOKIE_NAME = "record_id"
-const RECORD_ID_EXPIRATION = 2 * time.Hour
 // cookie name
 const RecordIDCookieName = "record_id"
 
@@ -28,8 +27,7 @@ type TrackEntryHandler struct {
 }
 
 func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *http.Request) {
-	origin := request.Header.Get("Origin")
-	response.Header().Set("Access-Control-Allow-Origin", origin)
+	response.Header().Set("Access-Control-Allow-Origin", request.Header.Get("Origin"))
 	response.Header().Set("Access-Control-Allow-Headers", "content-type")
 	response.Header().Set("Access-Control-Allow-Credentials", "true")
 	response.Header().Set("Content-Type", "application/json")
@@ -45,29 +43,28 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 	}
 
 	recordCookie := recordCookie(response, request)
-	recordId := recordCookie.Value
 	recordID := recordCookie.Value
+	entries, err := decodeJSON(request)
 
-	decoder := json.NewDecoder(request.Body)
-	var trackEntry trackentry.TrackEntry
-	err := decoder.Decode(&trackEntry)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
 		fmt.Fprint(response, `{"message": "Invalid JSON payload"}`)
 		return
 	}
 
-	trackEntry.Origin = origin
+	log.Infof("Tracking %d entries, record_id: %s", len(entries), recordID)
 
-	log.Infof("Tracking dom, record_id: %s, created_at: %d, origin: %s", recordId, trackEntry.CreatedAt, origin)
-	err = h.Exporter.Export(&trackEntry, recordId)
-	log.Infof("Tracking dom, record_id: %s, created_at: %d, origin: %s", recordID, trackEntry.CreatedAt, origin)
-	err = h.Exporter.Export(&trackEntry, recordID)
-	if err != nil {
-		log.WithError(err).Errorf("Failed to export track entry: %+v", trackEntry)
-		response.WriteHeader(http.StatusUnprocessableEntity)
-		fmt.Fprint(response, `{"message": "Failed to export track entry"}`)
-		return
+	for i := 0; i < len(entries); i++ {
+		trackEntry := entries[i]
+		log.Infof("Tracking dom, record_id: %s, created_at: %d, origin: %s", recordID, trackEntry.CreatedAt, trackEntry.Origin)
+		err = h.Exporter.Export(&trackEntry, recordID)
+
+		if err != nil {
+			log.WithError(err).Errorf("Failed to export track entry: %+v", trackEntry)
+			response.WriteHeader(http.StatusUnprocessableEntity)
+			fmt.Fprint(response, `{"message": "Failed to export track entry"}`)
+			return
+		}
 	}
 
 	response.WriteHeader(http.StatusCreated)
@@ -75,15 +72,12 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 }
 
 func recordCookie(response http.ResponseWriter, request *http.Request) *http.Cookie {
-	cookie, err := request.Cookie(RECORD_ID_COOKIE_NAME)
 	cookie, err := request.Cookie(RecordIDCookieName)
 
 	if err != nil || cookie.Value == "" {
 		cookie = &http.Cookie{
-			Name:     RECORD_ID_COOKIE_NAME,
 			Name:     RecordIDCookieName,
 			Value:    uuid.NewV4().String(),
-			Expires:  time.Now().Add(RECORD_ID_EXPIRATION),
 			Expires:  time.Now().Add(RecordIDExpiration),
 			Path:     "/",
 			HttpOnly: true,
@@ -93,4 +87,24 @@ func recordCookie(response http.ResponseWriter, request *http.Request) *http.Coo
 	}
 
 	return cookie
+}
+
+func decodeJSON(request *http.Request) ([]trackentry.TrackEntry, error) {
+	var entries []trackentry.TrackEntry
+	error := json.Unmarshal(streamToByte(request.Body), &entries)
+
+	if entries != nil {
+		origin := request.Header.Get("Origin")
+		for i := 0; i < len(entries); i++ {
+			entries[i].Origin = origin
+		}
+	}
+
+	return entries, error
+}
+
+func streamToByte(stream io.Reader) []byte {
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(stream)
+	return buf.Bytes()
 }
