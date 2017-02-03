@@ -1,27 +1,23 @@
 package exporters
 
 import (
-	"errors"
-	"fmt"
 	"github.com/duckclick/wing/config"
+	"github.com/duckclick/wing/trackentry"
+	"github.com/pkg/errors"
 )
 
-type TrackEntry struct {
-	CreatedAt int    `json:"created_at"`
-	Origin    string `json:"origin"`
-	Markup    string `json:"markup"`
-}
-
 type Exporter interface {
-	Export(trackEntry *TrackEntry, recordId string) error
+	Export(trackEntry *trackentry.TrackEntry, recordId string) error
+	Stop() error
 }
 
 func Lookup(config *config.Config) (Exporter, error) {
 	switch config.Exporter {
 	case "file":
 		return &FileExporter{Config: config.FileExporter}, nil
+	case "redis":
+		return NewRedisExporter(config.RedisExporter), nil
+	default:
+		return nil, errors.Errorf("No exporter found for '%s'", config.Exporter)
 	}
-
-	errorMessage := fmt.Sprintf("No exporter found for '%s'", config.Exporter)
-	return nil, errors.New(errorMessage)
 }

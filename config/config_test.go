@@ -16,23 +16,23 @@ func TestWhenFileIsMissing(t *testing.T) {
 }
 
 func TestWhenFileIsValid(t *testing.T) {
-	configContent := `exporter: file
+	content := `exporter: file
 
 file_exporter:
   folder: /tmp/track_entries`
-	tempFile, err := WriteTempFile(configContent)
+	tempFile, err := writeTempFile(content)
 	assert.Nil(t, err)
 	defer os.Remove(tempFile)
 
-	config, err := ReadConfigFile(tempFile)
+	c, err := ReadConfigFile(tempFile)
 	assert.Nil(t, err)
 
-	assert.Equal(t, "file", config.Exporter, "should have correct exporter")
-	assert.NotNil(t, config.FileExporter, "should have a file exporter")
-	assert.Equal(t, "/tmp/track_entries", config.FileExporter.Folder, "should have correct folder")
+	assert.Equal(t, "file", c.Exporter, "should have correct exporter")
+	assert.NotNil(t, c.FileExporter, "should have a file exporter")
+	assert.Equal(t, "/tmp/track_entries", c.FileExporter.Folder, "should have correct folder")
 }
 
-func WriteTempFile(content string) (fName string, err error) {
+func writeTempFile(content string) (fName string, err error) {
 	byteContent := []byte(content)
 	tempFile, err := ioutil.TempFile("", "example")
 	if err != nil {

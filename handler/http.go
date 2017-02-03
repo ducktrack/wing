@@ -1,4 +1,4 @@
-package handlers
+package handler
 
 import (
 	"encoding/json"
@@ -9,13 +9,15 @@ import (
 	"github.com/satori/go.uuid"
 	"net/http"
 	"time"
+	"github.com/duckclick/wing/trackentry"
 )
 
 const RECORD_ID_COOKIE_NAME = "record_id"
 const RECORD_ID_EXPIRATION = 2 * time.Hour
 
 type TrackEntryHandler struct {
-	Config *config.Config
+	Config   config.Config
+	Exporter exporters.Exporter
 }
 
 func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *http.Request) {
@@ -31,49 +33,38 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 
 	if request.Method != "POST" {
 		response.WriteHeader(http.StatusMethodNotAllowed)
-		fmt.Fprintf(response, `{"message": "Method Not Allowed"}`)
+		fmt.Fprint(response, `{"message": "Method Not Allowed"}`)
 		return
 	}
 
-	if h.Config == nil {
-		response.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(response, `{"message": "App not configured"}`)
-		return
-	}
-
-	recordCookie := createRecordCookie(response, request)
+	recordCookie := recordCookie(response, request)
 	recordId := recordCookie.Value
 
 	decoder := json.NewDecoder(request.Body)
-	var trackEntry exporters.TrackEntry
+	var trackEntry trackentry.TrackEntry
 	err := decoder.Decode(&trackEntry)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
-		fmt.Fprintf(response, `{"message": "Invalid JSON payload"}`)
+		fmt.Fprint(response, `{"message": "Invalid JSON payload"}`)
 		return
 	}
 
 	trackEntry.Origin = origin
-	exporter, err := exporters.Lookup(h.Config)
-	if err != nil {
-		response.WriteHeader(http.StatusUnprocessableEntity)
-		fmt.Fprintf(response, fmt.Sprintf(`{"message": "%s"}`, err.Error()))
-		return
-	}
 
-	err = exporter.Export(&trackEntry, recordId)
+	log.Infof("Tracking dom, record_id: %s, created_at: %d, origin: %s", recordId, trackEntry.CreatedAt, origin)
+	err = h.Exporter.Export(&trackEntry, recordId)
 	if err != nil {
+		log.WithError(err).Errorf("Failed to export track entry: %+v", trackEntry)
 		response.WriteHeader(http.StatusUnprocessableEntity)
-		fmt.Fprintf(response, fmt.Sprintf(`{"message": "%s"}`, err.Error()))
+		fmt.Fprint(response, `{"message": "Failed to export track entry"}`)
 		return
 	}
 
 	response.WriteHeader(http.StatusCreated)
-	log.Infof("Tracking dom, record_id: %s, created_at: %d, origin: %s", recordId, trackEntry.CreatedAt, origin)
-	fmt.Fprintf(response, fmt.Sprintf(`{"recorded": true}`))
+	fmt.Fprint(response, `{"recorded": true}`)
 }
 
-func createRecordCookie(response http.ResponseWriter, request *http.Request) *http.Cookie {
+func recordCookie(response http.ResponseWriter, request *http.Request) *http.Cookie {
 	cookie, err := request.Cookie(RECORD_ID_COOKIE_NAME)
 
 	if err != nil || cookie.Value == "" {
