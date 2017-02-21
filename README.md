@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/duckclick/wing.svg?style=svg)](https://circleci.com/gh/duckclick/wing)
+
 # Wing
 
 ## Running
