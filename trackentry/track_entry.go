@@ -8,7 +8,7 @@ import (
 // TrackEntry definition
 type TrackEntry struct {
 	CreatedAt int    `json:"created_at"`
-	Origin    string `json:"origin"`
+	URL       string `json:"url"`
 	Markup    string `json:"markup"`
 }
 
