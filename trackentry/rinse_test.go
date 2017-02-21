@@ -14,6 +14,6 @@ func TestStripScriptTags(t *testing.T) {
 	}
 
 	rinsedMarkup, err := entry.Rinse()
-	assert.Nil(t, err, "rinse should succeed")
+	assert.Nil(t, err, "Rinse() should succeed")
 	assert.Equal(t, "<html><head></head><body></body></html>", string(rinsedMarkup), "script tags should be removed")
 }
