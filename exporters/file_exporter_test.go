@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -17,27 +18,30 @@ func TestExport(t *testing.T) {
 		Folder: "/tmp/test/track_entries",
 	}
 
-	htmlSample := "<html><head></head><body></body></html>"
-	htmlAsBase64 := helpers.ToBase64(htmlSample)
-
 	trackEntry := &trackentry.TrackEntry{
-		CreatedAt: 123456,
-		Markup:    htmlAsBase64,
+		CreatedAt: 1487696788863,
+		URL:       "http://example.org/some/path",
+		Markup:    helpers.ToBase64("<html><head></head><body></body></html>"),
 	}
 
 	recordID := uuid.NewV4().String()
 
 	exporter := FileExporter{Config: exporterConfig}
 	err := exporter.Export(trackEntry, recordID)
-	assert.Nil(t, err, "export should succeed")
+	assert.Nil(t, err, "FileExporter#Export should succeed")
 
-	recordPath := fmt.Sprintf("/tmp/test/track_entries/%s/%d.html", recordID, trackEntry.CreatedAt)
+	recordPath := fmt.Sprintf("/tmp/test/track_entries/%s/%d.json", recordID, trackEntry.CreatedAt)
 	if _, err := os.Stat(recordPath); os.IsNotExist(err) {
-		fmt.Sprintf("FileExporter#Export failed to save track entry, expected:\n%v\n to exist", recordPath)
+		fmt.Printf("FileExporter#Export failed to save track entry, expected:\n%v\n to exist", recordPath)
 		t.FailNow()
 	}
 	defer os.Remove(recordPath)
 
 	htmlBytes, _ := ioutil.ReadFile(recordPath)
-	assert.Equal(t, "<html><head></head><body></body></html>", string(htmlBytes), "FileExporter#Export should save the expected content")
+	assert.Equal(
+		t,
+		`{"created_at":1487696788863,"url":"http://example.org/some/path","markup":"<html><head></head><body></body></html>"}`,
+		strings.TrimSpace(string(htmlBytes)),
+		"FileExporter#Export should save the expected content",
+	)
 }
