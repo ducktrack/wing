@@ -13,20 +13,18 @@ import (
 	"testing"
 )
 
-var htmlSample string
 var trackEntry *trackentry.TrackEntry
 var recordID string
 var exporter *RedisExporter
 var mockedConnection *redigomock.Conn
 
 func TestMain(m *testing.M) {
-	htmlSample = "<html><head></head><body></body></html>"
-	trackEntry = &trackentry.TrackEntry{
-		CreatedAt: 123456,
-		Markup:    helpers.ToBase64(htmlSample),
-	}
-
 	recordID = uuid.NewV4().String()
+	trackEntry = &trackentry.TrackEntry{
+		CreatedAt: 1487696788863,
+		URL:       "http://example.org/some/path",
+		Markup:    helpers.Base64BlankMarkup,
+	}
 
 	exporterConfig := config.RedisExporter{
 		Host: "foo",
@@ -45,15 +43,19 @@ func TestMain(m *testing.M) {
 }
 
 func TestRedisExport(t *testing.T) {
-	mockedConnection.Command("HSET", recordID, "123456", htmlSample).Expect(nil)
+	mockedConnection.
+		Command("HSET", recordID, "1487696788863", helpers.BlankMarkup).
+		Expect(nil)
 
 	err := exporter.Export(trackEntry, recordID)
-	assert.Nil(t, err, "export should succeed")
+	assert.Nil(t, err, "RedisExporter#Export should succeed")
 }
 
 func TestExportReturnsErrorOnRedisError(t *testing.T) {
-	mockedConnection.Command("HSET", recordID, "123456", htmlSample).ExpectError(errors.New("Redis error"))
+	mockedConnection.
+		Command("HSET", recordID, "1487696788863", helpers.BlankMarkup).
+		ExpectError(errors.New("Redis error"))
 
 	err := exporter.Export(trackEntry, recordID)
-	assert.NotNil(t, err, "export should fail with an error")
+	assert.NotNil(t, err, "RedisExporter#Export should fail with an error")
 }

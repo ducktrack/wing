@@ -9,7 +9,7 @@ import (
 
 func TestMarkupBytes(t *testing.T) {
 	entry := &TrackEntry{
-		Markup: helpers.ToBase64("<html><head></head><body></body></html>"),
+		Markup: helpers.Base64BlankMarkup,
 	}
 
 	bytes, err := entry.MarkupBytes()
@@ -21,7 +21,7 @@ func TestToJSON(t *testing.T) {
 	entry := &TrackEntry{
 		CreatedAt: 1487696788863,
 		URL:       "http://example.org/some/path",
-		Markup:    helpers.ToBase64("<html><head></head><body></body></html>"),
+		Markup:    helpers.Base64BlankMarkup,
 	}
 
 	json, err := entry.ToJSON()

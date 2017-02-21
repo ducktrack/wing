@@ -21,7 +21,7 @@ func TestExport(t *testing.T) {
 	trackEntry := &trackentry.TrackEntry{
 		CreatedAt: 1487696788863,
 		URL:       "http://example.org/some/path",
-		Markup:    helpers.ToBase64("<html><head></head><body></body></html>"),
+		Markup:    helpers.Base64BlankMarkup,
 	}
 
 	recordID := uuid.NewV4().String()
