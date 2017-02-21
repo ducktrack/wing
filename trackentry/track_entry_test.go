@@ -1,19 +1,15 @@
 package trackentry
 
 import (
-	"encoding/base64"
+	helpers "github.com/duckclick/wing/testing"
 	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
 )
 
-func toBase64(markup string) string {
-	return base64.StdEncoding.EncodeToString([]byte(markup))
-}
-
 func TestMarkupBytes(t *testing.T) {
 	entry := &TrackEntry{
-		Markup: toBase64("<html><head></head><body></body></html>"),
+		Markup: helpers.ToBase64("<html><head></head><body></body></html>"),
 	}
 
 	bytes, err := entry.MarkupBytes()
@@ -25,7 +21,7 @@ func TestToJSON(t *testing.T) {
 	entry := &TrackEntry{
 		CreatedAt: 1487696788863,
 		URL:       "http://example.org/some/path",
-		Markup:    toBase64("<html><head></head><body></body></html>"),
+		Markup:    helpers.ToBase64("<html><head></head><body></body></html>"),
 	}
 
 	json, err := entry.ToJSON()

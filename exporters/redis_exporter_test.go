@@ -1,9 +1,9 @@
 package exporters
 
 import (
-	"encoding/base64"
 	"errors"
 	"github.com/duckclick/wing/config"
+	helpers "github.com/duckclick/wing/testing"
 	"github.com/duckclick/wing/trackentry"
 	"github.com/garyburd/redigo/redis"
 	"github.com/rafaeljusto/redigomock"
@@ -23,7 +23,7 @@ func TestMain(m *testing.M) {
 	htmlSample = "<html><head></head><body></body></html>"
 	trackEntry = &trackentry.TrackEntry{
 		CreatedAt: 123456,
-		Markup:    base64.StdEncoding.EncodeToString([]byte(htmlSample)),
+		Markup:    helpers.ToBase64(htmlSample),
 	}
 
 	recordID = uuid.NewV4().String()

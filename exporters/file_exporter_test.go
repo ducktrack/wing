@@ -1,9 +1,9 @@
 package exporters
 
 import (
-	"encoding/base64"
 	"fmt"
 	"github.com/duckclick/wing/config"
+	helpers "github.com/duckclick/wing/testing"
 	"github.com/duckclick/wing/trackentry"
 	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
@@ -18,7 +18,7 @@ func TestExport(t *testing.T) {
 	}
 
 	htmlSample := "<html><head></head><body></body></html>"
-	htmlAsBase64 := base64.StdEncoding.EncodeToString([]byte(htmlSample))
+	htmlAsBase64 := helpers.ToBase64(htmlSample)
 
 	trackEntry := &trackentry.TrackEntry{
 		CreatedAt: 123456,

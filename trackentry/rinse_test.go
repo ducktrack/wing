@@ -1,7 +1,7 @@
 package trackentry
 
 import (
-	"encoding/base64"
+	helpers "github.com/duckclick/wing/testing"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -10,7 +10,7 @@ func TestStripScriptTags(t *testing.T) {
 	htmlSample := `<html><head><script src="evil"></script></head><body><script src="g-evil"></script></body></html>`
 	entry := &TrackEntry{
 		CreatedAt: 123456,
-		Markup:    base64.StdEncoding.EncodeToString([]byte(htmlSample)),
+		Markup:    helpers.ToBase64(htmlSample),
 	}
 
 	rinsedMarkup, err := entry.Rinse()
