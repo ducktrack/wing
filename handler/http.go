@@ -56,7 +56,7 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 
 	for i := 0; i < len(entries); i++ {
 		trackEntry := entries[i]
-		log.Infof("Tracking dom, record_id: %s, created_at: %d, origin: %s", recordID, trackEntry.CreatedAt, trackEntry.Origin)
+		log.Infof("Tracking dom, record_id: %s, created_at: %d, URL: %s", recordID, trackEntry.CreatedAt, trackEntry.URL)
 		err = h.Exporter.Export(&trackEntry, recordID)
 
 		if err != nil {
@@ -92,14 +92,6 @@ func recordCookie(response http.ResponseWriter, request *http.Request) *http.Coo
 func decodeJSON(request *http.Request) ([]trackentry.TrackEntry, error) {
 	var entries []trackentry.TrackEntry
 	error := json.Unmarshal(streamToByte(request.Body), &entries)
-
-	if entries != nil {
-		origin := request.Header.Get("Origin")
-		for i := 0; i < len(entries); i++ {
-			entries[i].Origin = origin
-		}
-	}
-
 	return entries, error
 }
 
