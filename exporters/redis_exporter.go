@@ -43,12 +43,13 @@ func (re *RedisExporter) Stop() error {
 	return re.pool.Close()
 }
 
-// Export saves the entry using HSET with recordID as the key. The field name is the created at value of the TrackEntry.
+// Export saves the entry using HSET with recordID as the key. The field name is the created at value
+// of the TrackEntry.
 // To list all fields use HGETALL <recordID>, example: hgetall "593a177d-e250-4fc2-a6a4-5b0ec33ed56a"
 func (re *RedisExporter) Export(trackEntry *trackentry.TrackEntry, recordID string) error {
-	markup, err := trackEntry.Rinse()
+	json, err := trackEntry.ToJSON()
 	if err != nil {
-		return errors.Wrap(err, "Failed to rinse the markup")
+		return errors.Wrap(err, "Failed to encode json")
 	}
 
 	if re.pool == nil {
@@ -59,6 +60,6 @@ func (re *RedisExporter) Export(trackEntry *trackentry.TrackEntry, recordID stri
 
 	createdAtStr := strconv.Itoa(trackEntry.CreatedAt)
 	log.Infof("Storing redis entry at: %s, %s", recordID, createdAtStr)
-	reply, err := conn.Do("HSET", recordID, createdAtStr, markup)
+	reply, err := conn.Do("HSET", recordID, createdAtStr, json)
 	return errors.Wrapf(err, "Failed to store track entry in redis, error: %s, reply: %s", err, reply)
 }

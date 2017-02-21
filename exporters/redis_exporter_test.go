@@ -14,6 +14,7 @@ import (
 )
 
 var trackEntry *trackentry.TrackEntry
+var trackEntryJSON string
 var recordID string
 var exporter *RedisExporter
 var mockedConnection *redigomock.Conn
@@ -26,6 +27,7 @@ func TestMain(m *testing.M) {
 		Markup:    helpers.Base64BlankMarkup,
 	}
 
+	trackEntryJSON, _ = trackEntry.ToJSON()
 	exporterConfig := config.RedisExporter{
 		Host: "foo",
 		Port: 1234,
@@ -44,7 +46,7 @@ func TestMain(m *testing.M) {
 
 func TestRedisExport(t *testing.T) {
 	mockedConnection.
-		Command("HSET", recordID, "1487696788863", helpers.BlankMarkup).
+		Command("HSET", recordID, "1487696788863", trackEntryJSON).
 		Expect(nil)
 
 	err := exporter.Export(trackEntry, recordID)
@@ -53,7 +55,7 @@ func TestRedisExport(t *testing.T) {
 
 func TestExportReturnsErrorOnRedisError(t *testing.T) {
 	mockedConnection.
-		Command("HSET", recordID, "1487696788863", helpers.BlankMarkup).
+		Command("HSET", recordID, "1487696788863", trackEntryJSON).
 		ExpectError(errors.New("Redis error"))
 
 	err := exporter.Export(trackEntry, recordID)
