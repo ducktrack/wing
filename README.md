@@ -4,6 +4,12 @@
 
 ## Running
 
+Install and start redis server
+```sh
+brew install redis
+redis-server
+```
+
 ```sh
 go run main.go
 # or
