@@ -40,6 +40,18 @@ To add new dependecies do:
 glide get <dependency>
 ```
 
+Build a docker image:
+
+```sh
+docker build -t wing .
+```
+
+Run a docker image and mount the configuration file:
+
+```sh
+docker run --rm -t -p 7273 -v ${PWD}/application.yml:/go/src/github.com/duckclick/wing/application.yml wing
+```
+
 ## Generate self signed certificate
 
 Generate private key (.key)
