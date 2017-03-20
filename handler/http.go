@@ -2,12 +2,11 @@ package handler
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/duckclick/wing/config"
+	"github.com/duckclick/wing/events"
 	"github.com/duckclick/wing/exporters"
-	"github.com/duckclick/wing/trackentry"
 	"github.com/satori/go.uuid"
 	"io"
 	"net/http"
@@ -44,7 +43,7 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 
 	recordCookie := recordCookie(response, request)
 	recordID := recordCookie.Value
-	entries, err := decodeJSON(request)
+	trackableEvents, err := events.DecodeJSON(streamToByte(request.Body))
 
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
@@ -52,17 +51,18 @@ func (h *TrackEntryHandler) ServeHTTP(response http.ResponseWriter, request *htt
 		return
 	}
 
-	log.Infof("Tracking %d entries, record_id: %s", len(entries), recordID)
+	log.Infof("Tracking %d entries, record_id: %s", len(trackableEvents), recordID)
 
-	for i := 0; i < len(entries); i++ {
-		trackEntry := entries[i]
-		log.Infof("Tracking dom, record_id: %s, created_at: %d, URL: %s", recordID, trackEntry.CreatedAt, trackEntry.URL)
-		err = h.Exporter.Export(&trackEntry, recordID)
+	for i := 0; i < len(trackableEvents); i++ {
+		trackable := trackableEvents[i]
+		event := trackable.GetEvent()
+		log.Infof("%s, record_id: %s, created_at: %d, URL: %s", event.Type, recordID, event.CreatedAt, event.URL)
+		err = h.Exporter.Export(trackable, recordID)
 
 		if err != nil {
-			log.WithError(err).Errorf("Failed to export track entry: %+v", trackEntry)
+			log.WithError(err).Errorf("Failed to export event: %+v", event)
 			response.WriteHeader(http.StatusUnprocessableEntity)
-			fmt.Fprint(response, `{"message": "Failed to export track entry"}`)
+			fmt.Fprint(response, `{"message": "Failed to export event"}`)
 			return
 		}
 	}
@@ -87,12 +87,6 @@ func recordCookie(response http.ResponseWriter, request *http.Request) *http.Coo
 	}
 
 	return cookie
-}
-
-func decodeJSON(request *http.Request) ([]trackentry.TrackEntry, error) {
-	var entries []trackentry.TrackEntry
-	error := json.Unmarshal(streamToByte(request.Body), &entries)
-	return entries, error
 }
 
 func streamToByte(stream io.Reader) []byte {

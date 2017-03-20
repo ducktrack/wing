@@ -69,14 +69,14 @@ func TestWhenBase64IsInvalid(t *testing.T) {
 	req, _ := http.NewRequest(
 		"POST",
 		"/",
-		strings.NewReader(`[{"created_at": 12345, "markup": "123"}]`),
+		strings.NewReader(`[{"type": "TrackDOM", "created_at": 12345, "payload": {"markup": "123"}}]`),
 	)
 
 	req.Header.Set("Content-Type", "application/json")
 	h.ServeHTTP(rr, req)
 
 	assert.Equal(t, 422, rr.Code, "should respond with 422 to invalid base64 payload")
-	assert.Equal(t, `{"message": "Failed to export track entry"}`, rr.Body.String(), "should respond with an error message")
+	assert.Equal(t, `{"message": "Invalid JSON payload"}`, rr.Body.String(), "should respond with an error message")
 }
 
 func TestWhenItSavesTheRequest(t *testing.T) {
@@ -86,7 +86,7 @@ func TestWhenItSavesTheRequest(t *testing.T) {
 	req, _ := http.NewRequest(
 		"POST",
 		"/",
-		strings.NewReader(`[{"created_at": 1480979268, "markup": "PGh0bWw+PC9odG1sPg=="}]`),
+		strings.NewReader(`[{"type": "TrackDOM", "created_at": 1480979268, "payload": {"markup": "PGh0bWw+PC9odG1sPg=="}}]`),
 	)
 
 	req.Header.Set("Content-Type", "application/json")

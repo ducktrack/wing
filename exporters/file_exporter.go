@@ -3,7 +3,7 @@ package exporters
 import (
 	"fmt"
 	"github.com/duckclick/wing/config"
-	"github.com/duckclick/wing/trackentry"
+	"github.com/duckclick/wing/events"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
@@ -16,8 +16,9 @@ type FileExporter struct {
 }
 
 // Export writes a file (<createdAt>.html) with the markup
-func (fe *FileExporter) Export(trackEntry *trackentry.TrackEntry, recordID string) error {
-	json, err := trackEntry.ToJSON()
+func (fe *FileExporter) Export(trackable events.Trackable, recordID string) error {
+	event := trackable.GetEvent()
+	json, err := trackable.ToJSON()
 	if err != nil {
 		return errors.Wrap(err, "Failed to encode JSON")
 	}
@@ -25,7 +26,7 @@ func (fe *FileExporter) Export(trackEntry *trackentry.TrackEntry, recordID strin
 	recordPath := filepath.Join(fe.Config.Folder, recordID)
 	os.MkdirAll(recordPath, os.ModePerm)
 
-	fileName := filepath.Join(recordPath, fmt.Sprintf("%d.json", trackEntry.CreatedAt))
+	fileName := filepath.Join(recordPath, fmt.Sprintf("%d.json", event.CreatedAt))
 	err = ioutil.WriteFile(fileName, []byte(json), 0644)
 	return errors.Wrapf(err, "Failed to save track entry to '%s'", fileName)
 }

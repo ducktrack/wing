@@ -4,7 +4,7 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/duckclick/wing/config"
-	"github.com/duckclick/wing/trackentry"
+	"github.com/duckclick/wing/events"
 	"github.com/garyburd/redigo/redis"
 	"github.com/pkg/errors"
 	"strconv"
@@ -46,8 +46,9 @@ func (re *RedisExporter) Stop() error {
 // Export saves the entry using HSET with recordID as the key. The field name is the created at value
 // of the TrackEntry.
 // To list all fields use HGETALL <recordID>, example: hgetall "593a177d-e250-4fc2-a6a4-5b0ec33ed56a"
-func (re *RedisExporter) Export(trackEntry *trackentry.TrackEntry, recordID string) error {
-	json, err := trackEntry.ToJSON()
+func (re *RedisExporter) Export(trackable events.Trackable, recordID string) error {
+	event := trackable.GetEvent()
+	json, err := trackable.ToJSON()
 	if err != nil {
 		return errors.Wrap(err, "Failed to encode json")
 	}
@@ -58,7 +59,7 @@ func (re *RedisExporter) Export(trackEntry *trackentry.TrackEntry, recordID stri
 	conn := re.pool.Get()
 	defer conn.Close()
 
-	createdAtStr := strconv.Itoa(trackEntry.CreatedAt)
+	createdAtStr := strconv.Itoa(event.CreatedAt)
 	log.Infof("Storing redis entry at: %s, %s", recordID, createdAtStr)
 	reply, err := conn.Do("HSET", recordID, createdAtStr, json)
 	return errors.Wrapf(err, "Failed to store track entry in redis, error: %s, reply: %s", err, reply)
