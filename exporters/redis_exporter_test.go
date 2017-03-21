@@ -10,71 +10,74 @@ import (
 	"github.com/rafaeljusto/redigomock"
 	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
-	"os"
+	"github.com/stretchr/testify/suite"
 	"testing"
 )
 
-var event events.Trackable
-var eventJSON string
-var recordID string
-var exporter *exporters.RedisExporter
-var mockedConnection *redigomock.Conn
+type RedisExporterTestSuite struct {
+	suite.Suite
+	recordID         string
+	exporter         *exporters.RedisExporter
+	mockedConnection *redigomock.Conn
+}
 
-func TestMain(m *testing.M) {
-	recordID = uuid.NewV4().String()
-
-	exporterConfig := config.RedisExporter{
-		Host: "foo",
-		Port: 1234,
-	}
-	exporter = &exporters.RedisExporter{Config: exporterConfig}
-	mockedConnection = redigomock.NewConn()
-	exporter.Pool = &redis.Pool{
-		Dial: func() (redis.Conn, error) {
-			return mockedConnection, nil
+func (suite *RedisExporterTestSuite) SetupTest() {
+	suite.recordID = uuid.NewV4().String()
+	suite.exporter = &exporters.RedisExporter{
+		Config: config.RedisExporter{
+			Host: "foo",
+			Port: 1234,
 		},
 	}
-	defer exporter.Stop()
 
-	os.Exit(m.Run())
+	suite.mockedConnection = redigomock.NewConn()
+	suite.exporter.Pool = &redis.Pool{
+		Dial: func() (redis.Conn, error) {
+			return suite.mockedConnection, nil
+		},
+	}
 }
 
-func TestRedisExport(t *testing.T) {
+func (suite *RedisExporterTestSuite) TestRedisExport() {
+	defer suite.exporter.Stop()
 	trackDOM, err := events.TrackDOMFromJSON(events.Event{
 		CreatedAt:  1487696788863,
 		URL:        "http://example.org/some/path",
 		RawPayload: helpers.CreateRawMessage(`{"markup": %s}`, helpers.Base64BlankMarkup),
 	})
 
-	assert.Nil(t, err, "events.TrackDOMFromJSON() should succeed")
+	assert.Nil(suite.T(), err, "events.TrackDOMFromJSON() should succeed")
+	eventJSON, err := trackDOM.ToJSON()
+	assert.Nil(suite.T(), err, "trackDOM.ToJSON() should succeed")
 
-	eventJSON, err = trackDOM.ToJSON()
-	assert.Nil(t, err, "trackDOM.ToJSON() should succeed")
-
-	mockedConnection.
-		Command("HSET", recordID, "1487696788863", eventJSON).
+	suite.mockedConnection.
+		Command("HSET", suite.recordID, "1487696788863", eventJSON).
 		Expect(nil)
 
-	err = exporter.Export(trackDOM, recordID)
-	assert.Nil(t, err, "RedisExporter#Export should succeed")
+	err = suite.exporter.Export(trackDOM, suite.recordID)
+	assert.Nil(suite.T(), err, "RedisExporter#Export should succeed")
 }
 
-func TestExportReturnsErrorOnRedisError(t *testing.T) {
+func (suite *RedisExporterTestSuite) TestExportReturnsErrorOnRedisError() {
+	defer suite.exporter.Stop()
 	trackDOM, err := events.TrackDOMFromJSON(events.Event{
 		CreatedAt:  1487696788863,
 		URL:        "http://example.org/some/path",
 		RawPayload: helpers.CreateRawMessage(`{"markup": %s}`, helpers.Base64BlankMarkup),
 	})
 
-	assert.Nil(t, err, "events.TrackDOMFromJSON() should succeed")
+	assert.Nil(suite.T(), err, "events.TrackDOMFromJSON() should succeed")
+	eventJSON, err := trackDOM.ToJSON()
+	assert.Nil(suite.T(), err, "trackDOM.ToJSON() should succeed")
 
-	eventJSON, err = trackDOM.ToJSON()
-	assert.Nil(t, err, "trackDOM.ToJSON() should succeed")
-
-	mockedConnection.
-		Command("HSET", recordID, "1487696788863", eventJSON).
+	suite.mockedConnection.
+		Command("HSET", suite.recordID, "1487696788863", eventJSON).
 		ExpectError(errors.New("Redis error"))
 
-	err = exporter.Export(trackDOM, recordID)
-	assert.NotNil(t, err, "RedisExporter#Export should fail with an error")
+	err = suite.exporter.Export(trackDOM, suite.recordID)
+	assert.NotNil(suite.T(), err, "RedisExporter#Export should fail with an error")
+}
+
+func TestRedisExporter(t *testing.T) {
+	suite.Run(t, new(RedisExporterTestSuite))
 }
