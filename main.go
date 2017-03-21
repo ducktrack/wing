@@ -15,20 +15,8 @@ const defaultConfigFile = "application.yml"
 
 func main() {
 	port := getPort()
-	configFilePath := getConfigFilePath()
-	log.Infof("Config file: %s", configFilePath)
-
-	wingConfig, err := config.ReadConfigFile(configFilePath)
-	if err != nil {
-		log.WithError(err).Fatal("Failed to read config file")
-		os.Exit(1)
-	}
-
-	exporter, err := exporters.Lookup(wingConfig)
-	if err != nil {
-		log.WithError(err).Fatal("Failed to instantiate an exporter")
-		os.Exit(1)
-	}
+	wingConfig := readConfig()
+	exporter := lookupExporter(wingConfig)
 	defer exporter.Stop()
 
 	log.Infof("Using exporter: %s", wingConfig.Exporter)
@@ -58,13 +46,27 @@ func corsMiddleware(router *handlers.Router) http.Handler {
 	return middleware.Handler(router)
 }
 
-func getPort() string {
-	port := os.Getenv("PORT")
-	if len(port) == 0 {
-		port = "7273"
+func lookupExporter(wingConfig *config.Config) exporters.Exporter {
+	exporter, err := exporters.Lookup(wingConfig)
+	if err != nil {
+		log.WithError(err).Fatal("Failed to instantiate an exporter")
+		os.Exit(1)
 	}
 
-	return port
+	return exporter
+}
+
+func readConfig() *config.Config {
+	configFilePath := getConfigFilePath()
+	log.Infof("Config file: %s", configFilePath)
+
+	wingConfig, err := config.ReadConfigFile(configFilePath)
+	if err != nil {
+		log.WithError(err).Fatal("Failed to read config file")
+		os.Exit(1)
+	}
+
+	return wingConfig
 }
 
 func getConfigFilePath() string {
@@ -74,4 +76,13 @@ func getConfigFilePath() string {
 	}
 
 	return configFilePath
+}
+
+func getPort() string {
+	port := os.Getenv("PORT")
+	if len(port) == 0 {
+		port = "7273"
+	}
+
+	return port
 }
