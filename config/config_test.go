@@ -1,6 +1,7 @@
-package config
+package config_test
 
 import (
+	"github.com/duckclick/wing/config"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
@@ -8,7 +9,7 @@ import (
 )
 
 func TestWhenFileIsMissing(t *testing.T) {
-	_, err := ReadConfigFile("/tmp/missing-wing-application.yml")
+	_, err := config.ReadConfigFile("/tmp/missing-wing-application.yml")
 	assert.NotNil(t, err)
 
 	expected := "The configuration file is missing, expected file '/tmp/missing-wing-application.yml'"
@@ -24,7 +25,7 @@ file_exporter:
 	assert.Nil(t, err)
 	defer os.Remove(tempFile)
 
-	c, err := ReadConfigFile(tempFile)
+	c, err := config.ReadConfigFile(tempFile)
 	assert.Nil(t, err)
 
 	assert.Equal(t, "file", c.Exporter, "should have correct exporter")

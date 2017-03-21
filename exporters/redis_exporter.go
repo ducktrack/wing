@@ -13,23 +13,23 @@ import (
 
 // RedisExporter definition
 type RedisExporter struct {
-	config config.RedisExporter
-	pool   *redis.Pool
+	Config config.RedisExporter
+	Pool   *redis.Pool
 }
 
 // NewRedisExporter is the construtor of RedisExporter
 func NewRedisExporter(config config.RedisExporter) *RedisExporter {
-	exporter := &RedisExporter{config: config}
+	exporter := &RedisExporter{Config: config}
 	exporter.Connect()
 	return exporter
 }
 
 // Connect establishes the connection with the redis host
 func (re *RedisExporter) Connect() {
-	connString := fmt.Sprintf("%s:%d", re.config.Host, re.config.Port)
+	connString := fmt.Sprintf("%s:%d", re.Config.Host, re.Config.Port)
 	log.Infof("Redis connection string: %s", connString)
 
-	re.pool = &redis.Pool{
+	re.Pool = &redis.Pool{
 		MaxIdle:     3,
 		IdleTimeout: 240 * time.Second,
 		Dial: func() (redis.Conn, error) {
@@ -40,7 +40,7 @@ func (re *RedisExporter) Connect() {
 
 // Stop closes the connection pool
 func (re *RedisExporter) Stop() error {
-	return re.pool.Close()
+	return re.Pool.Close()
 }
 
 // Export saves the entry using HSET with recordID as the key. The field name is the created at value
@@ -53,10 +53,10 @@ func (re *RedisExporter) Export(trackable events.Trackable, recordID string) err
 		return errors.Wrap(err, "Failed to encode json")
 	}
 
-	if re.pool == nil {
+	if re.Pool == nil {
 		return errors.New("Not connected to Redis, must connect first")
 	}
-	conn := re.pool.Get()
+	conn := re.Pool.Get()
 	defer conn.Close()
 
 	createdAtStr := strconv.Itoa(event.CreatedAt)

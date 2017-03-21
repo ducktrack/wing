@@ -1,9 +1,10 @@
-package exporters
+package exporters_test
 
 import (
 	"errors"
 	"github.com/duckclick/wing/config"
 	"github.com/duckclick/wing/events"
+	"github.com/duckclick/wing/exporters"
 	helpers "github.com/duckclick/wing/testing"
 	"github.com/garyburd/redigo/redis"
 	"github.com/rafaeljusto/redigomock"
@@ -16,7 +17,7 @@ import (
 var event events.Trackable
 var eventJSON string
 var recordID string
-var exporter *RedisExporter
+var exporter *exporters.RedisExporter
 var mockedConnection *redigomock.Conn
 
 func TestMain(m *testing.M) {
@@ -26,9 +27,9 @@ func TestMain(m *testing.M) {
 		Host: "foo",
 		Port: 1234,
 	}
-	exporter = &RedisExporter{config: exporterConfig}
+	exporter = &exporters.RedisExporter{Config: exporterConfig}
 	mockedConnection = redigomock.NewConn()
-	exporter.pool = &redis.Pool{
+	exporter.Pool = &redis.Pool{
 		Dial: func() (redis.Conn, error) {
 			return mockedConnection, nil
 		},

@@ -5,7 +5,8 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/duckclick/wing/config"
 	"github.com/duckclick/wing/exporters"
-	"github.com/duckclick/wing/handler"
+	"github.com/duckclick/wing/handlers"
+	"github.com/rs/cors"
 	"net/http"
 	"os"
 )
@@ -33,16 +34,28 @@ func main() {
 	log.Infof("Using exporter: %s", wingConfig.Exporter)
 	log.Infof("Starting Wing at port %s", port)
 
-	http.Handle("/", &handler.TrackEntryHandler{Config: *wingConfig, Exporter: exporter})
+	router := handlers.NewRouter(wingConfig, exporter)
+	router.DrawRoutes()
+
+	mux := corsMiddleware(router)
 	host := fmt.Sprintf(":%s", port)
 
 	if wingConfig.TLSCertFile != "" && wingConfig.TLSKeyFile != "" {
 		log.Infof("Using TLS")
-		http.ListenAndServeTLS(host, wingConfig.TLSCertFile, wingConfig.TLSKeyFile, nil)
+		http.ListenAndServeTLS(host, wingConfig.TLSCertFile, wingConfig.TLSKeyFile, mux)
 
 	} else {
-		http.ListenAndServe(host, nil)
+		http.ListenAndServe(host, mux)
 	}
+}
+
+func corsMiddleware(router *handlers.Router) http.Handler {
+	middleware := cors.New(cors.Options{
+		AllowCredentials: true,
+		AllowedHeaders:   []string{"content-type"},
+	})
+
+	return middleware.Handler(router)
 }
 
 func getPort() string {

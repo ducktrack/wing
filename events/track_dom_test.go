@@ -1,6 +1,7 @@
-package events
+package events_test
 
 import (
+	"github.com/duckclick/wing/events"
 	helpers "github.com/duckclick/wing/testing"
 	"github.com/stretchr/testify/assert"
 	"strings"
@@ -8,7 +9,7 @@ import (
 )
 
 func Test_ToJSON(t *testing.T) {
-	trackDOM, err := TrackDOMFromJSON(Event{
+	trackDOM, err := events.TrackDOMFromJSON(events.Event{
 		CreatedAt:  1487696788863,
 		URL:        "http://example.org/some/path",
 		RawPayload: helpers.CreateRawMessage(`{"markup": %s}`, helpers.Base64BlankMarkup),
@@ -27,7 +28,7 @@ func Test_ToJSON(t *testing.T) {
 
 func Test_TrackDOMFromJSON_StripScriptTags(t *testing.T) {
 	htmlSample := `<html><head><script src="evil"></script></head><body><script src="g-evil"></script></body></html>`
-	trackDOM, err := TrackDOMFromJSON(Event{
+	trackDOM, err := events.TrackDOMFromJSON(events.Event{
 		CreatedAt:  123456,
 		RawPayload: helpers.CreateRawMessage(`{"markup": %s}`, helpers.ToBase64(htmlSample)),
 	})
@@ -36,7 +37,7 @@ func Test_TrackDOMFromJSON_StripScriptTags(t *testing.T) {
 }
 
 func Test_TrackDOMFromJSON_DecodesBase64Markup(t *testing.T) {
-	trackDOM, err := TrackDOMFromJSON(Event{
+	trackDOM, err := events.TrackDOMFromJSON(events.Event{
 		CreatedAt:  123456,
 		RawPayload: helpers.CreateRawMessage(`{"markup": %s}`, helpers.Base64BlankMarkup),
 	})

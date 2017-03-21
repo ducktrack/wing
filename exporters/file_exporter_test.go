@@ -1,9 +1,10 @@
-package exporters
+package exporters_test
 
 import (
 	"fmt"
 	"github.com/duckclick/wing/config"
 	"github.com/duckclick/wing/events"
+	"github.com/duckclick/wing/exporters"
 	helpers "github.com/duckclick/wing/testing"
 	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
@@ -27,7 +28,7 @@ func TestExport(t *testing.T) {
 	assert.Nil(t, err, "events.TrackDOMFromJSON() should succeed")
 	recordID := uuid.NewV4().String()
 
-	exporter := FileExporter{Config: exporterConfig}
+	exporter := exporters.FileExporter{Config: exporterConfig}
 	err = exporter.Export(trackDOM, recordID)
 	assert.Nil(t, err, "FileExporter#Export should succeed")
 

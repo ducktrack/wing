@@ -1,7 +1,8 @@
-package exporters
+package exporters_test
 
 import (
 	"github.com/duckclick/wing/config"
+	"github.com/duckclick/wing/exporters"
 	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
@@ -15,7 +16,7 @@ func TestLookupWhenExporterIsFile(t *testing.T) {
 		},
 	}
 
-	exporter, err := Lookup(&appConfig)
+	exporter, err := exporters.Lookup(&appConfig)
 	assert.Nil(t, err)
 
 	interfaceType := reflect.TypeOf(exporter).String()
@@ -27,8 +28,7 @@ func TestLookupWhenExporterIsInvalid(t *testing.T) {
 		Exporter: "invalid",
 	}
 
-	_, err := Lookup(&appConfig)
+	_, err := exporters.Lookup(&appConfig)
 	assert.NotNil(t, err)
-
 	assert.Equal(t, "No exporter found for 'invalid'", err.Error(), "should fail with not found exporter")
 }
