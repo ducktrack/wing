@@ -20,3 +20,8 @@ func CreateFileExporterAppContext() *handlers.AppContext {
 		Exporter: fileExporter,
 	}
 }
+
+func CreateRouter() *handlers.Router {
+	appContext := CreateFileExporterAppContext()
+	return handlers.NewRouter(appContext.Config, appContext.Exporter)
+}
