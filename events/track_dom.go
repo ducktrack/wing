@@ -34,14 +34,17 @@ func NewTrackDOM(event Event, payload TrackDOMPayload) *TrackDOM {
 // TrackDOMFromJSON creates a new TrackDOM based on event.RawPayload. It decodes
 // the base64 and generates a secure markup
 func TrackDOMFromJSON(event Event) (*TrackDOM, error) {
-	var trackDOM *TrackDOM
 	var payload TrackDOMPayload
 	err := json.Unmarshal([]byte(event.RawPayload), &payload)
+
+	if err != nil {
+		return &TrackDOM{}, errors.Wrap(err, "Failed to decode payload")
+	}
 
 	secureMarkup, err := rinse(payload.Markup)
 
 	if err != nil {
-		return trackDOM, errors.Wrap(err, "Failed to generate a secure markup")
+		return &TrackDOM{}, errors.Wrap(err, "Failed to generate a secure markup")
 	}
 
 	payload.Markup = secureMarkup

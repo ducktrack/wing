@@ -60,7 +60,7 @@ func (suite *FileExporterTestSuite) TestExport() {
 	trackDOM, err := events.TrackDOMFromJSON(events.Event{
 		CreatedAt:  1487696788863,
 		URL:        "http://example.org/some/path",
-		RawPayload: helpers.CreateRawMessage(`{"markup": %s}`, helpers.Base64BlankMarkup),
+		RawPayload: helpers.CreateRawMessage(`{"markup": "%s"}`, helpers.Base64BlankMarkup),
 	})
 
 	assert.Nil(suite.T(), err, "events.TrackDOMFromJSON() should succeed")
