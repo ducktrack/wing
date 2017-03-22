@@ -24,6 +24,10 @@ func NewRedisExporter(config config.RedisExporter) *RedisExporter {
 	return exporter
 }
 
+func (re *RedisExporter) Initialize() error {
+	return nil
+}
+
 // Connect establishes the connection with the redis host
 func (re *RedisExporter) Connect() {
 	connString := fmt.Sprintf("%s:%d", re.Config.Host, re.Config.Port)

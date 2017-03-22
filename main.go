@@ -17,6 +17,7 @@ func main() {
 	port := getPort()
 	wingConfig := readConfig()
 	exporter := lookupExporter(wingConfig)
+	exporter.Initialize()
 	defer exporter.Stop()
 
 	log.Infof("Using exporter: %s", wingConfig.Exporter)

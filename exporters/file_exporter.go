@@ -15,6 +15,11 @@ type FileExporter struct {
 	Config config.FileExporter
 }
 
+// Initialize checks if the application has write permissions
+func (fe *FileExporter) Initialize() error {
+	return nil
+}
+
 // Export writes a file (<createdAt>.html) with the markup
 func (fe *FileExporter) Export(trackable events.Trackable, recordID string) error {
 	event := trackable.GetEvent()

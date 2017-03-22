@@ -8,6 +8,7 @@ import (
 
 // Exporter interface
 type Exporter interface {
+	Initialize() error
 	Export(trackable events.Trackable, recordID string) error
 	Stop() error
 }
