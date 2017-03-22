@@ -1,5 +1,5 @@
-hash: c4eb86757b173cd879495a4200ec41cc2647aae718a2686f978c8d448c83528e
-updated: 2017-03-21T19:56:40.572083196+01:00
+hash: d6fc2e367e81c9d4b47aeeb498864bfb6d9baf9e29f2de33bfa2070c68c06c1c
+updated: 2017-03-22T18:18:11.021497064+01:00
 imports:
 - name: github.com/andybalholm/cascadia
   version: 196d48ce4ae8cf1c8f87088d2884eca214240887
@@ -28,10 +28,16 @@ imports:
   version: 879c5887cd475cd7864858769793b2ceb0d44feb
 - name: github.com/Sirupsen/logrus
   version: ba1b36c82c5e05c4f912a88eab0dcd91a171688f
+- name: github.com/spf13/afero
+  version: 9be650865eab0c12963d8753212f4f9c66cdcf12
+  subpackages:
+  - mem
 - name: github.com/stretchr/testify
   version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
   subpackages:
   - assert
+  - require
+  - suite
 - name: golang.org/x/net
   version: 45e771701b814666a7eb299e6c7a57d0b1799e91
   subpackages:
@@ -42,6 +48,11 @@ imports:
   version: 478fcf54317e52ab69f40bb4c7a1520288d7f7ea
   subpackages:
   - unix
+- name: golang.org/x/text
+  version: b00b5aff2fd772bedad89f1cf227f624c7660c2f
+  subpackages:
+  - transform
+  - unicode/norm
 - name: gopkg.in/yaml.v2
   version: a5b47d31c556af34a302ce5d659e6fea44d90de0
 testImports:

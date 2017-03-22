@@ -17,7 +17,7 @@ type Exporter interface {
 func Lookup(config *config.Config) (Exporter, error) {
 	switch config.Exporter {
 	case "file":
-		return &FileExporter{Config: config.FileExporter}, nil
+		return NewFileExporter(config.FileExporter), nil
 
 	case "redis":
 		return NewRedisExporter(config.RedisExporter), nil
