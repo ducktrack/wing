@@ -17,17 +17,23 @@ func main() {
 	port := getPort()
 	wingConfig := readConfig()
 	exporter := lookupExporter(wingConfig)
-	exporter.Initialize()
-	defer exporter.Stop()
 
 	log.Infof("Using exporter: %s", wingConfig.Exporter)
-	log.Infof("Starting Wing at port %s", port)
+
+	err := exporter.Initialize()
+	if err != nil {
+		log.WithError(err).Fatal("Failed to Initialize exporter")
+		os.Exit(1)
+	}
+	defer exporter.Stop()
 
 	router := handlers.NewRouter(wingConfig, exporter)
 	router.DrawRoutes()
 
 	mux := corsMiddleware(router)
 	host := fmt.Sprintf(":%s", port)
+
+	log.Infof("Starting Wing at port %s", port)
 
 	if wingConfig.TLSCertFile != "" && wingConfig.TLSKeyFile != "" {
 		log.Infof("Using TLS")

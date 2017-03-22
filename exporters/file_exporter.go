@@ -2,6 +2,7 @@ package exporters
 
 import (
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/duckclick/wing/config"
 	"github.com/duckclick/wing/events"
 	"github.com/pkg/errors"
@@ -29,6 +30,8 @@ func NewFileExporter(config config.FileExporter) *FileExporter {
 // Initialize checks if the application has write permissions
 func (fe *FileExporter) Initialize() error {
 	rootFolder := fe.Config.Folder
+	log.Infof("Initializing FileExporter (root folder '%s')", rootFolder)
+
 	if len(rootFolder) == 0 || rootFolder == "/" {
 		return errors.Errorf("Invalid folder '%s'", rootFolder)
 	}

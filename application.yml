@@ -1,8 +1,8 @@
 tls_cert_file: server.crt
 tls_key_file: server.key
 
-#exporter: file
-#file_exporter:
+# exporter: file
+# file_exporter:
 #  folder: /tmp/track_entries
 
 exporter: redis

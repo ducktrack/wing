@@ -1,12 +1,12 @@
 package exporters_test
 
 import (
-	"errors"
 	"github.com/duckclick/wing/config"
 	"github.com/duckclick/wing/events"
 	"github.com/duckclick/wing/exporters"
 	helpers "github.com/duckclick/wing/testing"
 	"github.com/garyburd/redigo/redis"
+	"github.com/pkg/errors"
 	"github.com/rafaeljusto/redigomock"
 	"github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
@@ -38,7 +38,28 @@ func (suite *RedisExporterTestSuite) SetupTest() {
 	}
 }
 
-func (suite *RedisExporterTestSuite) TestRedisExport() {
+func (suite *RedisExporterTestSuite) TestInitialize() {
+	defer suite.exporter.Stop()
+	suite.mockedConnection.Command("PING").Expect("PONG")
+	err := suite.exporter.Initialize()
+	assert.Nil(suite.T(), err, "RedisExporter#Initialize should succeed")
+}
+
+func (suite *RedisExporterTestSuite) TestInitializeWhenCantConnect() {
+	defer suite.exporter.Stop()
+	suite.mockedConnection.Command("PING").ExpectError(errors.New("connection failed"))
+	err := suite.exporter.Initialize()
+	assert.NotNil(suite.T(), err, "RedisExporter#Initialize should fail with an error")
+}
+
+func (suite *RedisExporterTestSuite) TestInitializeWhenRedisReplyWithWrongData() {
+	defer suite.exporter.Stop()
+	suite.mockedConnection.Command("PING").Expect("WRONG")
+	err := suite.exporter.Initialize()
+	assert.NotNil(suite.T(), err, "RedisExporter#Initialize should fail with an error")
+}
+
+func (suite *RedisExporterTestSuite) TestExport() {
 	defer suite.exporter.Stop()
 	trackDOM, err := events.TrackDOMFromJSON(events.Event{
 		CreatedAt:  1487696788863,

@@ -19,27 +19,30 @@ type RedisExporter struct {
 
 // NewRedisExporter is the construtor of RedisExporter
 func NewRedisExporter(config config.RedisExporter) *RedisExporter {
-	exporter := &RedisExporter{Config: config}
-	exporter.Connect()
-	return exporter
+	return &RedisExporter{Config: config}
 }
 
+// Initialize establishes and verify the connection with the redis host
 func (re *RedisExporter) Initialize() error {
-	return nil
-}
-
-// Connect establishes the connection with the redis host
-func (re *RedisExporter) Connect() {
 	connString := fmt.Sprintf("%s:%d", re.Config.Host, re.Config.Port)
-	log.Infof("Redis connection string: %s", connString)
+	log.Infof("Initializing RedisExporter (connection string '%s')", connString)
 
-	re.Pool = &redis.Pool{
-		MaxIdle:     3,
-		IdleTimeout: 240 * time.Second,
-		Dial: func() (redis.Conn, error) {
-			return redis.Dial("tcp", connString)
-		},
+	if re.Pool == nil {
+		re.Pool = createConnectionPool(connString)
 	}
+
+	conn := re.Pool.Get()
+	defer conn.Close()
+
+	reply, err := redis.String(conn.Do("PING"))
+	if err != nil || reply != "PONG" {
+		if err == nil {
+			err = errors.Errorf("Wrong reply, expected: 'PONG', received: '%s'", reply)
+		}
+		return errors.Wrap(err, "Failed to test connection with redis")
+	}
+
+	return nil
 }
 
 // Stop closes the connection pool
@@ -67,4 +70,14 @@ func (re *RedisExporter) Export(trackable events.Trackable, recordID string) err
 	log.Infof("Storing redis entry at: %s, %s", recordID, createdAtStr)
 	reply, err := conn.Do("HSET", recordID, createdAtStr, json)
 	return errors.Wrapf(err, "Failed to store track entry in redis, error: %s, reply: %s", err, reply)
+}
+
+func createConnectionPool(connString string) *redis.Pool {
+	return &redis.Pool{
+		MaxIdle:     3,
+		IdleTimeout: 240 * time.Second,
+		Dial: func() (redis.Conn, error) {
+			return redis.Dial("tcp", connString)
+		},
+	}
 }
