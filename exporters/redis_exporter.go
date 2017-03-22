@@ -54,15 +54,16 @@ func (re *RedisExporter) Stop() error {
 // of the TrackEntry.
 // To list all fields use HGETALL <recordID>, example: hgetall "593a177d-e250-4fc2-a6a4-5b0ec33ed56a"
 func (re *RedisExporter) Export(trackable events.Trackable, recordID string) error {
+	if re.Pool == nil {
+		return errors.New("Not connected to Redis, must connect first")
+	}
+
 	event := trackable.GetEvent()
 	json, err := trackable.ToJSON()
 	if err != nil {
 		return errors.Wrap(err, "Failed to encode json")
 	}
 
-	if re.Pool == nil {
-		return errors.New("Not connected to Redis, must connect first")
-	}
 	conn := re.Pool.Get()
 	defer conn.Close()
 

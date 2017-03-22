@@ -28,6 +28,19 @@ func (suite *ExportersTestSuite) TestLookupWhenExporterIsFile() {
 	assert.Equal(suite.T(), "*exporters.FileExporter", interfaceType, "should use interface type from the configuration")
 }
 
+func (suite *ExportersTestSuite) TestLookupWhenExporterIsRedis() {
+	appConfig := config.Config{
+		Exporter:      "redis",
+		RedisExporter: config.RedisExporter{},
+	}
+
+	exporter, err := exporters.Lookup(&appConfig)
+	assert.Nil(suite.T(), err)
+
+	interfaceType := reflect.TypeOf(exporter).String()
+	assert.Equal(suite.T(), "*exporters.RedisExporter", interfaceType, "should use interface type from the configuration")
+}
+
 func (suite *ExportersTestSuite) TestLookupWhenExporterIsInvalid() {
 	appConfig := config.Config{
 		Exporter: "invalid",

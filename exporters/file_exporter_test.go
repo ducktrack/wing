@@ -83,6 +83,11 @@ func (suite *FileExporterTestSuite) TestExport() {
 	)
 }
 
+func (suite *FileExporterTestSuite) TestStop() {
+	err := suite.exporter.Stop()
+	assert.Nil(suite.T(), err, "FileExporter#Stop should succeed")
+}
+
 func TestFileExporter(t *testing.T) {
 	suite.Run(t, new(FileExporterTestSuite))
 }

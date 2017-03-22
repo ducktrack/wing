@@ -45,6 +45,14 @@ func (suite *RedisExporterTestSuite) TestInitialize() {
 	assert.Nil(suite.T(), err, "RedisExporter#Initialize should succeed")
 }
 
+func (suite *RedisExporterTestSuite) TestInitializeWhenPoolIsNotInitialized() {
+	defer suite.exporter.Stop()
+	suite.exporter.Pool = nil
+	suite.mockedConnection.Command("PING").Expect("PONG")
+	_ = suite.exporter.Initialize()
+	assert.NotNil(suite.T(), suite.exporter.Pool)
+}
+
 func (suite *RedisExporterTestSuite) TestInitializeWhenCantConnect() {
 	defer suite.exporter.Stop()
 	suite.mockedConnection.Command("PING").ExpectError(errors.New("connection failed"))
@@ -95,6 +103,19 @@ func (suite *RedisExporterTestSuite) TestExportReturnsErrorOnRedisError() {
 		Command("HSET", suite.recordID, "1487696788863", eventJSON).
 		ExpectError(errors.New("Redis error"))
 
+	err = suite.exporter.Export(trackDOM, suite.recordID)
+	assert.NotNil(suite.T(), err, "RedisExporter#Export should fail with an error")
+}
+
+func (suite *RedisExporterTestSuite) TestExportWhenConnectionPoolIsNotConfigured() {
+	trackDOM, err := events.TrackDOMFromJSON(events.Event{
+		CreatedAt:  1487696788863,
+		URL:        "http://example.org/some/path",
+		RawPayload: helpers.CreateRawMessage(`{"markup": "%s"}`, helpers.Base64BlankMarkup),
+	})
+	assert.Nil(suite.T(), err, "events.TrackDOMFromJSON() should succeed")
+
+	suite.exporter.Pool = nil
 	err = suite.exporter.Export(trackDOM, suite.recordID)
 	assert.NotNil(suite.T(), err, "RedisExporter#Export should fail with an error")
 }
