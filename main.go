@@ -5,7 +5,8 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/duckclick/wing/config"
 	"github.com/duckclick/wing/exporters"
-	"github.com/duckclick/wing/handler"
+	"github.com/duckclick/wing/handlers"
+	"github.com/rs/cors"
 	"net/http"
 	"os"
 )
@@ -14,6 +15,55 @@ const defaultConfigFile = "application.yml"
 
 func main() {
 	port := getPort()
+	wingConfig := readConfig()
+	exporter := lookupExporter(wingConfig)
+
+	log.Infof("Using exporter: %s", wingConfig.Exporter)
+
+	err := exporter.Initialize()
+	if err != nil {
+		log.WithError(err).Fatal("Failed to Initialize exporter")
+		os.Exit(1)
+	}
+	defer exporter.Stop()
+
+	router := handlers.NewRouter(wingConfig, exporter)
+	router.DrawRoutes()
+
+	mux := corsMiddleware(router)
+	host := fmt.Sprintf(":%s", port)
+
+	log.Infof("Starting Wing at port %s", port)
+
+	if wingConfig.TLSCertFile != "" && wingConfig.TLSKeyFile != "" {
+		log.Infof("Using TLS")
+		http.ListenAndServeTLS(host, wingConfig.TLSCertFile, wingConfig.TLSKeyFile, mux)
+
+	} else {
+		http.ListenAndServe(host, mux)
+	}
+}
+
+func corsMiddleware(router *handlers.Router) http.Handler {
+	middleware := cors.New(cors.Options{
+		AllowCredentials: true,
+		AllowedHeaders:   []string{"content-type"},
+	})
+
+	return middleware.Handler(router)
+}
+
+func lookupExporter(wingConfig *config.Config) exporters.Exporter {
+	exporter, err := exporters.Lookup(wingConfig)
+	if err != nil {
+		log.WithError(err).Fatal("Failed to instantiate an exporter")
+		os.Exit(1)
+	}
+
+	return exporter
+}
+
+func readConfig() *config.Config {
 	configFilePath := getConfigFilePath()
 	log.Infof("Config file: %s", configFilePath)
 
@@ -23,35 +73,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	exporter, err := exporters.Lookup(wingConfig)
-	if err != nil {
-		log.WithError(err).Fatal("Failed to instantiate an exporter")
-		os.Exit(1)
-	}
-	defer exporter.Stop()
-
-	log.Infof("Using exporter: %s", wingConfig.Exporter)
-	log.Infof("Starting Wing at port %s", port)
-
-	http.Handle("/", &handler.TrackEntryHandler{Config: *wingConfig, Exporter: exporter})
-	host := fmt.Sprintf(":%s", port)
-
-	if wingConfig.TLSCertFile != "" && wingConfig.TLSKeyFile != "" {
-		log.Infof("Using TLS")
-		http.ListenAndServeTLS(host, wingConfig.TLSCertFile, wingConfig.TLSKeyFile, nil)
-
-	} else {
-		http.ListenAndServe(host, nil)
-	}
-}
-
-func getPort() string {
-	port := os.Getenv("PORT")
-	if len(port) == 0 {
-		port = "7273"
-	}
-
-	return port
+	return wingConfig
 }
 
 func getConfigFilePath() string {
@@ -61,4 +83,13 @@ func getConfigFilePath() string {
 	}
 
 	return configFilePath
+}
+
+func getPort() string {
+	port := os.Getenv("PORT")
+	if len(port) == 0 {
+		port = "7273"
+	}
+
+	return port
 }

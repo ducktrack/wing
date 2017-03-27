@@ -2,13 +2,14 @@ package exporters
 
 import (
 	"github.com/duckclick/wing/config"
-	"github.com/duckclick/wing/trackentry"
+	"github.com/duckclick/wing/events"
 	"github.com/pkg/errors"
 )
 
 // Exporter interface
 type Exporter interface {
-	Export(trackEntry *trackentry.TrackEntry, recordID string) error
+	Initialize() error
+	Export(trackable events.Trackable, recordID string) error
 	Stop() error
 }
 
@@ -16,9 +17,11 @@ type Exporter interface {
 func Lookup(config *config.Config) (Exporter, error) {
 	switch config.Exporter {
 	case "file":
-		return &FileExporter{Config: config.FileExporter}, nil
+		return NewFileExporter(config.FileExporter), nil
+
 	case "redis":
 		return NewRedisExporter(config.RedisExporter), nil
+
 	default:
 		return nil, errors.Errorf("No exporter found for '%s'", config.Exporter)
 	}
