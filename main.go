@@ -27,9 +27,13 @@ func main() {
 	}
 	defer exporter.Stop()
 
-	router := handlers.NewRouter(wingConfig, exporter)
-	router.DrawRoutes()
+	router, err := handlers.NewRouter(wingConfig, exporter)
+	if err != nil {
+		log.WithError(err).Fatal("Failed to create router")
+		os.Exit(1)
+	}
 
+	router.DrawRoutes()
 	mux := corsMiddleware(router)
 	host := fmt.Sprintf(":%s", port)
 

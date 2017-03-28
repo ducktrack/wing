@@ -19,15 +19,18 @@ func CreateSessionHandler(appContext *AppContext) httprouter.Handle {
 			return
 		}
 
-		token, err := CreateToken(recordToken, time.Duration(30)*time.Minute)
+		encryptedPayload, err := EncodeAndEncryptRecordToken(recordToken, appContext.JWEPublicKey)
+
 		if err != nil {
-			log.WithError(err).Errorf("Failed to create token for RecordToken (%v)", recordToken)
+			log.WithError(err).Errorf("Failed to create encrypted JSON for RecordToken (%v)", recordToken)
 			response.WriteHeader(http.StatusForbidden)
 			fmt.Fprint(response, `{"message": "Failed to create session"}`)
 			return
 		}
 
+		token := CreateToken(encryptedPayload, time.Duration(30)*time.Minute)
 		tokenString, err := SignToken(token, appContext.Config.SessionTokenSecret)
+
 		if err != nil {
 			log.WithError(err).Error("Failed to sign JWT")
 			response.WriteHeader(http.StatusInternalServerError)

@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"bytes"
-	"encoding/json"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 	"strings"
@@ -10,23 +8,13 @@ import (
 )
 
 // CreateToken creates a JWT token
-func CreateToken(recordToken RecordToken, duration time.Duration) (*jwt.Token, error) {
-	var buffer bytes.Buffer
-	encoder := json.NewEncoder(&buffer)
-	err := encoder.Encode(recordToken)
-
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to encode RecordToken to JSON")
-	}
-
-	jsonPayload := string(buffer.Bytes())
-
+func CreateToken(payload string, duration time.Duration) *jwt.Token {
 	return jwt.NewWithClaims(jwt.SigningMethodHS256, &jwt.StandardClaims{
 		Issuer:    "wing",
 		ExpiresAt: time.Now().Add(duration).Unix(),
 		IssuedAt:  time.Now().Unix(),
-		Subject:   jsonPayload,
-	}), nil
+		Subject:   payload,
+	})
 }
 
 // SignToken signs the token

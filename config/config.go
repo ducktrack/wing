@@ -9,10 +9,12 @@ import (
 
 // Config definition
 type Config struct {
-	TLSCertFile        string `yaml:"tls_cert_file"`
-	TLSKeyFile         string `yaml:"tls_key_file"`
-	SessionTokenSecret string `yaml:"session_token_secret"`
-	Exporter           string
+	TLSCertFile        string        `yaml:"tls_cert_file"`
+	TLSKeyFile         string        `yaml:"tls_key_file"`
+	JWEPrivateKeyFile  string        `yaml:"jwe_private_key_file"`
+	JWEPublicKeyFile   string        `yaml:"jwe_public_key_file"`
+	SessionTokenSecret string        `yaml:"session_token_secret"`
+	Exporter           string        `yaml:"exporter"`
 	FileExporter       FileExporter  `yaml:"file_exporter,omitempty"`
 	RedisExporter      RedisExporter `yaml:"redis_exporter,omitempty"`
 }

@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"bytes"
 	"encoding/json"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/garyburd/redigo/redis"
 	"github.com/pkg/errors"
+	jose "gopkg.in/square/go-jose.v1"
 	"net/url"
 )
 
@@ -34,18 +36,16 @@ func FindRecordTokenByHost(redisPool *redis.Pool, originHost string) (RecordToke
 }
 
 // VerifyRecordToken definition
-func VerifyRecordToken(jwtToken *jwt.Token, originHost string) error {
+func VerifyRecordToken(jwtToken *jwt.Token, originHost string, privateKey interface{}) error {
 	host, err := extractOriginHost(originHost)
 	if err != nil {
 		return err
 	}
 
 	claims, ok := jwtToken.Claims.(*jwt.StandardClaims)
-	var recordToken RecordToken
-	err = json.Unmarshal([]byte(claims.Subject), &recordToken)
-
+	recordToken, err := DecryptEncodedRecordToken(claims.Subject, privateKey)
 	if err != nil {
-		return errors.Wrap(err, "Failed to decode JWT Subject claim")
+		return errors.Wrap(err, "Failed to decrypt encoded record token")
 	}
 
 	if !ok || host != recordToken.Host {
@@ -53,6 +53,50 @@ func VerifyRecordToken(jwtToken *jwt.Token, originHost string) error {
 	}
 
 	return nil
+}
+
+// EncodeAndEncryptRecordToken definition
+func EncodeAndEncryptRecordToken(recordToken RecordToken, publicKey interface{}) (string, error) {
+	var buffer bytes.Buffer
+	encoder := json.NewEncoder(&buffer)
+	err := encoder.Encode(recordToken)
+
+	if err != nil {
+		return "", errors.Wrap(err, "Failed to encode RecordToken to JSON")
+	}
+
+	encrypter, err := jose.NewEncrypter(jose.RSA_OAEP, jose.A128GCM, publicKey)
+	if err != nil {
+		return "", errors.Wrap(err, "Failed to create encrypter")
+	}
+
+	jweObject, err := encrypter.Encrypt(buffer.Bytes())
+	if err != nil {
+		return "", errors.Wrap(err, "Failed to encrypt JSON payload")
+	}
+
+	return jweObject.FullSerialize(), nil
+}
+
+// DecryptEncodedRecordToken definition
+func DecryptEncodedRecordToken(encryptedPayload string, privateKey interface{}) (RecordToken, error) {
+	jweObject, err := jose.ParseEncrypted(encryptedPayload)
+	if err != nil {
+		return RecordToken{}, errors.Wrap(err, "Failed to parse encrypted payload")
+	}
+
+	decryptedPayload, err := jweObject.Decrypt(privateKey)
+	if err != nil {
+		return RecordToken{}, errors.Wrap(err, "Failed to decrypt JWE Object")
+	}
+
+	var recordToken RecordToken
+	err = json.Unmarshal([]byte(decryptedPayload), &recordToken)
+	if err != nil {
+		return RecordToken{}, errors.Wrap(err, "Failed to decode decrypted payload")
+	}
+
+	return recordToken, nil
 }
 
 func extractOriginHost(originHeader string) (string, error) {

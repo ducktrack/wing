@@ -21,7 +21,7 @@ func VerifyTokenMiddleware(route Route) Route {
 				return
 			}
 
-			err = VerifyRecordToken(token, request.Header.Get("Origin"))
+			err = VerifyRecordToken(token, request.Header.Get("Origin"), appContext.JWEPrivateKey)
 
 			if err != nil {
 				log.WithError(err).Error("Failed to verify record token")

@@ -57,7 +57,7 @@ imports:
   - transform
   - unicode/norm
 - name: gopkg.in/square/go-jose.v1
-  version: d5683d954d08cd430460c651e2a2fff4f3b39f86
+  version: aa2e30fdd1fe9dd3394119af66451ae790d50e0d
 - name: gopkg.in/yaml.v2
   version: a5b47d31c556af34a302ce5d659e6fea44d90de0
 testImports:
