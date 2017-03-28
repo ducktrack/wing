@@ -12,16 +12,13 @@ import (
 	"time"
 )
 
-// cookie name
-const RecordIDCookieName = "record_id"
-
-// expiration time
-const RecordIDExpiration = 2 * time.Hour
-
 // CollectHandler definition
 func CollectHandler(appContext *AppContext) httprouter.Handle {
 	return func(response http.ResponseWriter, request *http.Request, _ httprouter.Params) {
-		recordCookie := recordCookie(response, request)
+		recordIDCookieName := appContext.Config.RecordIdCookieName
+		recordIDExpiration := time.Minute * time.Duration(appContext.Config.RecordIdCookieExpiration)
+
+		recordCookie := recordCookie(response, request, recordIDCookieName, recordIDExpiration)
 		recordID := recordCookie.Value
 		trackableEvents, err := events.DecodeJSON(streamToByte(request.Body))
 
@@ -52,14 +49,14 @@ func CollectHandler(appContext *AppContext) httprouter.Handle {
 	}
 }
 
-func recordCookie(response http.ResponseWriter, request *http.Request) *http.Cookie {
-	cookie, err := request.Cookie(RecordIDCookieName)
+func recordCookie(response http.ResponseWriter, request *http.Request, recordIdCookieName string, recordIDExpiration time.Duration) *http.Cookie {
+	cookie, err := request.Cookie(recordIdCookieName)
 
 	if err != nil || cookie.Value == "" {
 		cookie = &http.Cookie{
-			Name:     RecordIDCookieName,
+			Name:     recordIdCookieName,
 			Value:    uuid.NewV4().String(),
-			Expires:  time.Now().Add(RecordIDExpiration),
+			Expires:  time.Now().Add(recordIDExpiration),
 			Path:     "/",
 			HttpOnly: true,
 		}

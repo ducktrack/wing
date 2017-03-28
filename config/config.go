@@ -9,11 +9,13 @@ import (
 
 // Config definition
 type Config struct {
-	TLSCertFile   string `yaml:"tls_cert_file"`
-	TLSKeyFile    string `yaml:"tls_key_file"`
-	Exporter      string
-	FileExporter  FileExporter  `yaml:"file_exporter,omitempty"`
-	RedisExporter RedisExporter `yaml:"redis_exporter,omitempty"`
+	RecordIdCookieName       string `yaml:"cookie_name"`
+	RecordIdCookieExpiration uint16 `yaml:"cookie_expiration"`
+	TLSCertFile              string `yaml:"tls_cert_file"`
+	TLSKeyFile               string `yaml:"tls_key_file"`
+	Exporter                 string
+	FileExporter             FileExporter  `yaml:"file_exporter,omitempty"`
+	RedisExporter            RedisExporter `yaml:"redis_exporter,omitempty"`
 }
 
 // FileExporter definition
