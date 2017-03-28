@@ -1,5 +1,6 @@
 tls_cert_file: server.crt
 tls_key_file: server.key
+session_token_secret: "wingsecretkey"
 
 # exporter: file
 # file_exporter:
