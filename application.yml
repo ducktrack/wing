@@ -1,3 +1,6 @@
+cookie_name: record_id
+cookie_expiration: 120 # cookie lifetime in minutes
+
 tls_cert_file: server.crt
 tls_key_file: server.key
 

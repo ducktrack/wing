@@ -9,6 +9,8 @@ import (
 // CreateFileExporterAppContext creates a new *handlers.AppContext configured with FileExporter
 func CreateFileExporterAppContext() *handlers.AppContext {
 	appConfig := config.Config{
+		RecordIdCookieName: "record_id",
+		RecordIdCookieExpiration: 120,
 		Exporter: "file",
 		FileExporter: config.FileExporter{
 			Folder: "/tmp/test/track_entries",

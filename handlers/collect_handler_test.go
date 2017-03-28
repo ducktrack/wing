@@ -37,12 +37,14 @@ func (m *MyMockedExporter) Stop() error {
 
 type CollectHandlerTestSuite struct {
 	suite.Suite
-	handler httprouter.Handle
-	params  httprouter.Params
+	handler    httprouter.Handle
+	params     httprouter.Params
+	appContext *handlers.AppContext
 }
 
 func (suite *CollectHandlerTestSuite) SetupTest() {
-	suite.handler = handlers.CollectHandler(helpers.CreateFileExporterAppContext())
+	suite.appContext = helpers.CreateFileExporterAppContext()
+	suite.handler = handlers.CollectHandler(suite.appContext)
 	suite.params = httprouter.Params{}
 }
 
@@ -72,8 +74,6 @@ func (suite *CollectHandlerTestSuite) TestWhenBase64IsInvalid() {
 }
 
 func (suite *CollectHandlerTestSuite) TestWhenExporterFail() {
-	appContext := helpers.CreateFileExporterAppContext()
-
 	mockedExporter := new(MyMockedExporter)
 	mockedExporter.
 		On(
@@ -83,8 +83,8 @@ func (suite *CollectHandlerTestSuite) TestWhenExporterFail() {
 		).
 		Return(errors.New("Failed"))
 
-	appContext.Exporter = mockedExporter
-	suite.handler = handlers.CollectHandler(appContext)
+	suite.appContext.Exporter = mockedExporter
+	suite.handler = handlers.CollectHandler(suite.appContext)
 
 	rr := httptest.NewRecorder()
 	req, _ := http.NewRequest(
@@ -113,11 +113,26 @@ func (suite *CollectHandlerTestSuite) TestWhenItSavesTheRequest() {
 
 	assert.Equal(suite.T(), 201, rr.Code, "should respond with 201 to to valid request")
 	assert.Equal(suite.T(), `{"recorded": true}`, rr.Body.String(), "should respond with valid json")
+}
+
+func (suite *CollectHandlerTestSuite) TestCookieConfiguration() {
+	suite.appContext.Config.RecordIdCookieName = "custom_cookie_name"
+	suite.handler = handlers.CollectHandler(suite.appContext)
+
+	rr := httptest.NewRecorder()
+	req, _ := http.NewRequest(
+		"POST",
+		"/",
+		strings.NewReader(`[{"type": "TrackDOM", "created_at": 1480979268, "payload": {"markup": "PGh0bWw+PC9odG1sPg=="}}]`),
+	)
+
+	req.Header.Set("Content-Type", "application/json")
+	suite.handler(rr, req, suite.params)
 
 	request := http.Request{Header: http.Header{"Cookie": rr.HeaderMap["Set-Cookie"]}}
-	_, err := request.Cookie(handlers.RecordIDCookieName)
+	_, err := request.Cookie("custom_cookie_name")
 
-	assert.Nil(suite.T(), err, fmt.Sprintf("expected h to create '%s' cookie", handlers.RecordIDCookieName))
+	assert.Nil(suite.T(), err, fmt.Sprintf("expected h to create '%s' cookie", suite.appContext.Config.RecordIdCookieName))
 }
 
 func TestCollectHandler(t *testing.T) {
