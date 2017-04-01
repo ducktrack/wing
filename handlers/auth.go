@@ -54,11 +54,9 @@ func ParseAndVerifyToken(tokenString string, secret string) (*jwt.Token, error) 
 		} else if validationError.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0 {
 			return nil, errors.Wrapf(err, "Token expired or inactive")
 		}
-
-		return nil, errors.Wrapf(err, "Failed to parse token ('%s')", tokenString)
 	}
 
-	return nil, errors.Errorf("Failed to parse token ('%s')", tokenString)
+	return nil, errors.Wrapf(err, "Failed to parse token ('%s')", tokenString)
 }
 
 // Strips 'Bearer ' prefix from bearer token string
