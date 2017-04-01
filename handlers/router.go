@@ -24,7 +24,7 @@ type AppContext struct {
 // Router definition
 type Router struct {
 	*httprouter.Router
-	*AppContext
+	appContext *AppContext
 }
 
 // Route definition
@@ -32,46 +32,49 @@ type Route func(*AppContext) httprouter.Handle
 
 // NewRouter creates a new router with the app context
 func NewRouter(wingConfig *config.Config, exporter exporters.Exporter) (*Router, error) {
-	privateKeyData, err := readFile(wingConfig.JWEPrivateKeyFile)
+	privateKey, err := readPrivateKey(wingConfig.JWEPrivateKeyFile)
 	if err != nil {
 		return nil, err
 	}
 
-	publicKeyData, err := readFile(wingConfig.JWEPublicKeyFile)
-	if err != nil {
-		return nil, err
-	}
-
-	privateKey, err := jose.LoadPrivateKey([]byte(privateKeyData))
-	if err != nil {
-		return nil, err
-	}
-
-	publicKey, err := jose.LoadPublicKey([]byte(publicKeyData))
+	publicKey, err := readPublicKey(wingConfig.JWEPublicKeyFile)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Router{
-		httprouter.New(),
-		&AppContext{
+		Router: httprouter.New(),
+		appContext: &AppContext{
 			Config:        wingConfig,
 			Exporter:      exporter,
-			Redis:         createRedisConnectionPool("localhost:6379"),
 			JWEPrivateKey: privateKey,
 			JWEPublicKey:  publicKey,
 		},
 	}, nil
 }
 
+// AppContext returns the app context
+func (r *Router) AppContext() *AppContext {
+	if r.appContext.Redis == nil {
+		r.appContext.Redis = createRedisConnectionPool("localhost:6379")
+	}
+
+	return r.appContext
+}
+
+// SetAppContextRedis definition
+func (r *Router) SetAppContextRedis(redis *redis.Pool) {
+	r.appContext.Redis = redis
+}
+
 // GET draw a get handler
 func (r *Router) GET(path string, route Route) {
-	r.Handle("GET", path, route(r.AppContext))
+	r.Handle("GET", path, route(r.AppContext()))
 }
 
 // POST draw a post handler
 func (r *Router) POST(path string, route Route) {
-	r.Handle("POST", path, route(r.AppContext))
+	r.Handle("POST", path, route(r.AppContext()))
 }
 
 func createRedisConnectionPool(connString string) *redis.Pool {
@@ -84,9 +87,27 @@ func createRedisConnectionPool(connString string) *redis.Pool {
 	}
 }
 
+func readPrivateKey(path string) (interface{}, error) {
+	privateKeyData, err := readFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return jose.LoadPrivateKey([]byte(privateKeyData))
+}
+
+func readPublicKey(path string) (interface{}, error) {
+	publicKeyData, err := readFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return jose.LoadPublicKey([]byte(publicKeyData))
+}
+
 func readFile(path string) (string, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return "", errors.Wrapf(err, "File '%s' is missing, expected file '%s'", path)
+		return "", errors.Wrapf(err, "File '%s' is missing", path)
 	}
 
 	fileBytes, err := ioutil.ReadFile(path)
