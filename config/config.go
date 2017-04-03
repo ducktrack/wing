@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/pkg/errors"
+	jose "gopkg.in/square/go-jose.v1"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
@@ -30,18 +31,51 @@ type RedisExporter struct {
 	Port int16  `yaml:"port"`
 }
 
+// PrivateKey used for go-jose.v1 private keys
+type PrivateKey interface{}
+
+// PublicKey used for go-jose.v1 public keys
+type PublicKey interface{}
+
 // ReadConfigFile reads and parses the configuration file (application.yml)
 func ReadConfigFile(path string) (*Config, error) {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return nil, errors.Errorf("The configuration file is missing, expected file '%s'", path)
-	}
-
-	ymlBytes, err := ioutil.ReadFile(path)
+	filePayload, err := readFile(path)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "The configuration file is missing, expected file '%s'", path)
 	}
 
 	c := &Config{}
-	err = yaml.Unmarshal([]byte(ymlBytes), &c)
+	err = yaml.Unmarshal([]byte(filePayload), &c)
 	return c, err
+}
+
+// LoadJWEKeys returns the private and the public keys parsed by go-jose.v1
+func LoadJWEKeys(wingConfig *Config) (PrivateKey, PublicKey, error) {
+	privateKeyData, err := readFile(wingConfig.JWEPrivateKeyFile)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	privateKey, err := jose.LoadPrivateKey([]byte(privateKeyData))
+
+	publicKeyData, err := readFile(wingConfig.JWEPublicKeyFile)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	publicKey, err := jose.LoadPublicKey([]byte(publicKeyData))
+	return privateKey.(PrivateKey), publicKey.(PublicKey), nil
+}
+
+func readFile(path string) (string, error) {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return "", errors.Wrapf(err, "File '%s' is missing", path)
+	}
+
+	fileBytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		return "", errors.Wrapf(err, "Failed to read file '%s'", path)
+	}
+
+	return string(fileBytes), nil
 }

@@ -5,10 +5,6 @@ import (
 	"github.com/duckclick/wing/exporters"
 	"github.com/garyburd/redigo/redis"
 	"github.com/julienschmidt/httprouter"
-	"github.com/pkg/errors"
-	jose "gopkg.in/square/go-jose.v1"
-	"io/ioutil"
-	"os"
 	"time"
 )
 
@@ -17,8 +13,8 @@ type AppContext struct {
 	Config        *config.Config
 	Exporter      exporters.Exporter
 	Redis         *redis.Pool
-	JWEPublicKey  interface{}
-	JWEPrivateKey interface{}
+	JWEPrivateKey config.PrivateKey
+	JWEPublicKey  config.PublicKey
 }
 
 // Router definition
@@ -32,12 +28,7 @@ type Route func(*AppContext) httprouter.Handle
 
 // NewRouter creates a new router with the app context
 func NewRouter(wingConfig *config.Config, exporter exporters.Exporter) (*Router, error) {
-	privateKey, err := readPrivateKey(wingConfig.JWEPrivateKeyFile)
-	if err != nil {
-		return nil, err
-	}
-
-	publicKey, err := readPublicKey(wingConfig.JWEPublicKeyFile)
+	privateKey, publicKey, err := config.LoadJWEKeys(wingConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -85,35 +76,4 @@ func createRedisConnectionPool(connString string) *redis.Pool {
 			return redis.Dial("tcp", connString)
 		},
 	}
-}
-
-func readPrivateKey(path string) (interface{}, error) {
-	privateKeyData, err := readFile(path)
-	if err != nil {
-		return nil, err
-	}
-
-	return jose.LoadPrivateKey([]byte(privateKeyData))
-}
-
-func readPublicKey(path string) (interface{}, error) {
-	publicKeyData, err := readFile(path)
-	if err != nil {
-		return nil, err
-	}
-
-	return jose.LoadPublicKey([]byte(publicKeyData))
-}
-
-func readFile(path string) (string, error) {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return "", errors.Wrapf(err, "File '%s' is missing", path)
-	}
-
-	fileBytes, err := ioutil.ReadFile(path)
-	if err != nil {
-		return "", errors.Wrapf(err, "Failed to read file '%s'", path)
-	}
-
-	return string(fileBytes), nil
 }
