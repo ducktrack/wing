@@ -1,6 +1,7 @@
 package handlers_test
 
 import (
+	"fmt"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/duckclick/wing/handlers"
 	"github.com/stretchr/testify/assert"
@@ -98,6 +99,24 @@ func (suite *TokenTestSuite) TestParseAndVerifyTokenWhenTokenWasSignedWithADiffe
 	assert.NotNil(suite.T(), err)
 	assert.True(suite.T(), strings.Contains(err.Error(), "Unexpected signing method"), "Token should have been signed with a different algorithm")
 	assert.Nil(suite.T(), token)
+}
+
+func (suite *TokenTestSuite) TestParseAndVerifyAuthenticationHeader() {
+	signedToken := createSignedToken(suite)
+	authHeader := fmt.Sprintf("Bearer %s", signedToken)
+
+	token, err := handlers.ParseAndVerifyAuthenticationHeader(authHeader, suite.secret)
+	assert.Nil(suite.T(), err)
+	assert.NotNil(suite.T(), token)
+}
+
+func (suite *TokenTestSuite) TestParseAndVerifyAuthenticationHeaderWhenHasWrongAuthType() {
+	signedToken := createSignedToken(suite)
+	authHeader := fmt.Sprintf("Basic %s", signedToken)
+
+	_, err := handlers.ParseAndVerifyAuthenticationHeader(authHeader, suite.secret)
+	assert.NotNil(suite.T(), err)
+	assert.True(suite.T(), strings.Contains(err.Error(), "Failed to strip 'Beared' prefix from token"))
 }
 
 func TestToken(t *testing.T) {
