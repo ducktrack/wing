@@ -43,7 +43,7 @@ func ParseAndVerifyToken(tokenString string, secret string) (*jwt.Token, error) 
 		return []byte(secret), nil
 	})
 
-	if token.Valid {
+	if err == nil && token.Valid {
 		return token, nil
 	}
 
