@@ -11,6 +11,7 @@ import (
 // CreateSessionHandler definition
 func CreateSessionHandler(appContext *AppContext) httprouter.Handle {
 	return func(response http.ResponseWriter, request *http.Request, params httprouter.Params) {
+		response.Header().Set("Content-Type", "application/json;charset=utf-8")
 		recordToken, err := FindRecordTokenByHost(appContext.Redis, request.Header.Get("Origin"))
 		if err != nil {
 			log.WithError(err).Error("Failed to find record token")

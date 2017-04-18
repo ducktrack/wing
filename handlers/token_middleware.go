@@ -11,6 +11,7 @@ import (
 func TokenMiddleware(route Route) Route {
 	return func(appContext *AppContext) httprouter.Handle {
 		return func(response http.ResponseWriter, request *http.Request, params httprouter.Params) {
+			response.Header().Set("Content-Type", "application/json;charset=utf-8")
 			authHeader := request.Header.Get("Authorization")
 			token, err := ParseAndVerifyAuthenticationHeader(authHeader, appContext.Config.SessionTokenSecret)
 
