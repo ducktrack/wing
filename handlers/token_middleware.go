@@ -7,8 +7,8 @@ import (
 	"net/http"
 )
 
-// VerifyTokenMiddleware definition
-func VerifyTokenMiddleware(route Route) Route {
+// TokenMiddleware definition
+func TokenMiddleware(route Route) Route {
 	return func(appContext *AppContext) httprouter.Handle {
 		return func(response http.ResponseWriter, request *http.Request, params httprouter.Params) {
 			authHeader := request.Header.Get("Authorization")
