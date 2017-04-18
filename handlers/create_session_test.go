@@ -43,11 +43,12 @@ func (suite *CreateSessionHandlerTestSuite) TestWhenCalledWithAnInvalidOriginItR
 	req.Header.Set("Origin", "https://foo.example.com")
 
 	key := fmt.Sprintf("%s/%s", handlers.RecordTokenRedisNamespace, "foo.example.com")
-	suite.mockedConnection.Command("GET", key).Expect(nil)
+	cmd := suite.mockedConnection.Command("GET", key).Expect(nil)
 
 	suite.handler(rr, req, suite.params)
 	assert.Equal(suite.T(), 403, rr.Code, "should respond with 403")
 	assert.Equal(suite.T(), `{"message": "Failed to create session"}`, rr.Body.String(), "should respond with valid json")
+	assert.True(suite.T(), suite.mockedConnection.Stats(cmd) == 1, "Command should have been called")
 }
 
 func (suite *CreateSessionHandlerTestSuite) TestReturns201WhenOriginIsValid() {
@@ -56,7 +57,7 @@ func (suite *CreateSessionHandlerTestSuite) TestReturns201WhenOriginIsValid() {
 	req.Header.Set("Origin", "https://valid.example.com")
 
 	key := fmt.Sprintf("%s/%s", handlers.RecordTokenRedisNamespace, "valid.example.com")
-	suite.mockedConnection.Command("GET", key).Expect("a38103c9-a19e-409d-94de-0e3c86085a5a")
+	cmd := suite.mockedConnection.Command("GET", key).Expect("a38103c9-a19e-409d-94de-0e3c86085a5a")
 
 	type SessionJSON struct {
 		AccessToken string `json:"access_token"`
@@ -69,6 +70,7 @@ func (suite *CreateSessionHandlerTestSuite) TestReturns201WhenOriginIsValid() {
 	err := json.Unmarshal([]byte(rr.Body.String()), &jsonPayload)
 	assert.Nil(suite.T(), err, "should be a valid JSON")
 	assert.NotNil(suite.T(), jsonPayload.AccessToken, "should be present")
+	assert.True(suite.T(), suite.mockedConnection.Stats(cmd) == 1, "Command should have been called")
 }
 
 func TestCreateSessionHandler(t *testing.T) {
