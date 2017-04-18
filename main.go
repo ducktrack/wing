@@ -51,7 +51,8 @@ func main() {
 func corsMiddleware(router *handlers.Router) http.Handler {
 	middleware := cors.New(cors.Options{
 		AllowCredentials: true,
-		AllowedHeaders:   []string{"content-type"},
+		AllowedOrigins:   []string{"*"},
+		AllowedHeaders:   []string{"content-type", "authorization"},
 	})
 
 	return middleware.Handler(router)
