@@ -23,10 +23,8 @@ func CreateFileExporterAppContext() *handlers.AppContext {
 	}
 
 	fileExporter, _ := exporters.Lookup(&appConfig)
-	return &handlers.AppContext{
-		Config:   &appConfig,
-		Exporter: fileExporter,
-	}
+	appContext, _ := handlers.NewAppContext(&appConfig, fileExporter)
+	return appContext
 }
 
 // CreateRouter definition

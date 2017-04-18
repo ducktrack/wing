@@ -26,21 +26,31 @@ type Router struct {
 // Route definition
 type Route func(*AppContext) httprouter.Handle
 
-// NewRouter creates a new router with the app context
-func NewRouter(wingConfig *config.Config, exporter exporters.Exporter) (*Router, error) {
+// NewAppContext creates a new app context
+func NewAppContext(wingConfig *config.Config, exporter exporters.Exporter) (*AppContext, error) {
 	privateKey, publicKey, err := config.LoadJWEKeys(wingConfig)
 	if err != nil {
 		return nil, err
 	}
 
+	return &AppContext{
+		Config:        wingConfig,
+		Exporter:      exporter,
+		JWEPrivateKey: privateKey,
+		JWEPublicKey:  publicKey,
+	}, nil
+}
+
+// NewRouter creates a new router with the app context
+func NewRouter(wingConfig *config.Config, exporter exporters.Exporter) (*Router, error) {
+	appContext, err := NewAppContext(wingConfig, exporter)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Router{
-		Router: httprouter.New(),
-		appContext: &AppContext{
-			Config:        wingConfig,
-			Exporter:      exporter,
-			JWEPrivateKey: privateKey,
-			JWEPublicKey:  publicKey,
-		},
+		Router:     httprouter.New(),
+		appContext: appContext,
 	}, nil
 }
 
