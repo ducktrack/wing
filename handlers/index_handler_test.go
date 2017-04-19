@@ -27,7 +27,7 @@ func (suite *IndexHandlerTestSuite) TestReturns200() {
 	req, _ := http.NewRequest("GET", "/", nil)
 
 	suite.handler(rr, req, suite.params)
-	assert.Equal(suite.T(), 200, rr.Code, "should respond with 200 to to valid request")
+	assert.Equal(suite.T(), 200, rr.Code, "should respond with 200 to valid request")
 	assert.Equal(suite.T(), `{"name": "wing"}`, rr.Body.String(), "should respond with valid json")
 }
 

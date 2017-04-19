@@ -1,5 +1,8 @@
 tls_cert_file: server.crt
 tls_key_file: server.key
+jwe_private_key_file: jwe_certs/privatekey.pem # pass: wing
+jwe_public_key_file: jwe_certs/publickey.pem
+session_token_secret: "wingsecretkey"
 
 # exporter: file
 # file_exporter:

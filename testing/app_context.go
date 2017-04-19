@@ -6,22 +6,29 @@ import (
 	"github.com/duckclick/wing/handlers"
 )
 
-// CreateFileExporterAppContext creates a new *handlers.AppContext configured with FileExporter
-func CreateFileExporterAppContext() *handlers.AppContext {
-	appConfig := config.Config{
-		Exporter: "file",
-		FileExporter: config.FileExporter{
-			Folder: "/tmp/test/track_entries",
-		},
-	}
-	fileExporter, _ := exporters.Lookup(&appConfig)
-	return &handlers.AppContext{
-		Config:   &appConfig,
-		Exporter: fileExporter,
+// CreateBasicConfig definition
+func CreateBasicConfig() config.Config {
+	return config.Config{
+		JWEPrivateKeyFile: "../jwe_certs/privatekey.pem",
+		JWEPublicKeyFile:  "../jwe_certs/publickey.pem",
 	}
 }
 
-func CreateRouter() *handlers.Router {
+// CreateFileExporterAppContext creates a new *handlers.AppContext configured with FileExporter
+func CreateFileExporterAppContext() *handlers.AppContext {
+	appConfig := CreateBasicConfig()
+	appConfig.Exporter = "file"
+	appConfig.FileExporter = config.FileExporter{
+		Folder: "/tmp/test/track_entries",
+	}
+
+	fileExporter, _ := exporters.Lookup(&appConfig)
+	appContext, _ := handlers.NewAppContext(&appConfig, fileExporter)
+	return appContext
+}
+
+// CreateRouter definition
+func CreateRouter() (*handlers.Router, error) {
 	appContext := CreateFileExporterAppContext()
 	return handlers.NewRouter(appContext.Config, appContext.Exporter)
 }

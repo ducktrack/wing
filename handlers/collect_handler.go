@@ -21,6 +21,7 @@ const RecordIDExpiration = 2 * time.Hour
 // CollectHandler definition
 func CollectHandler(appContext *AppContext) httprouter.Handle {
 	return func(response http.ResponseWriter, request *http.Request, _ httprouter.Params) {
+		response.Header().Set("Content-Type", "application/json;charset=utf-8")
 		recordCookie := recordCookie(response, request)
 		recordID := recordCookie.Value
 		trackableEvents, err := events.DecodeJSON(streamToByte(request.Body))

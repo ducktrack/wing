@@ -27,9 +27,13 @@ func main() {
 	}
 	defer exporter.Stop()
 
-	router := handlers.NewRouter(wingConfig, exporter)
-	router.DrawRoutes()
+	router, err := handlers.NewRouter(wingConfig, exporter)
+	if err != nil {
+		log.WithError(err).Fatal("Failed to create router")
+		os.Exit(1)
+	}
 
+	router.DrawRoutes()
 	mux := corsMiddleware(router)
 	host := fmt.Sprintf(":%s", port)
 
@@ -47,7 +51,8 @@ func main() {
 func corsMiddleware(router *handlers.Router) http.Handler {
 	middleware := cors.New(cors.Options{
 		AllowCredentials: true,
-		AllowedHeaders:   []string{"content-type"},
+		AllowedOrigins:   []string{"*"},
+		AllowedHeaders:   []string{"content-type", "authorization"},
 	})
 
 	return middleware.Handler(router)
